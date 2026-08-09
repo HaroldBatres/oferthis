@@ -1,80 +1,88 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useUser, SignInButton } from "@clerk/nextjs";
 
 type Props = {
   productId: number;
 };
 
 export default function VoteButtons({ productId }: Props) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useUser();
   const [up, setUp] = useState(0);
   const [down, setDown] = useState(0);
   const [miVoto, setMiVoto] = useState<"up" | "down" | null>(null);
+  const [cargando, setCargando] = useState(false);
 
-  useEffect(() => {
-    fetch(`/api/votos?productId=${productId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setUp(data.up || 0);
-        setDown(data.down || 0);
-      })
-      .catch(() => {});
-  }, [productId]);
-
-  const votar = async (tipo: "up" | "down") => {
-    if (!isSignedIn) {
-      alert("Debes iniciar sesión para votar");
-      return;
-    }
-
-    const res = await fetch("/api/votos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, tipo }),
-    });
-
-    if (res.ok) {
-      // Actualizamos los contadores de forma simple
-      if (miVoto === tipo) return; // ya votó lo mismo
-
-      if (tipo === "up") {
-        setUp((prev) => prev + 1);
-        if (miVoto === "down") setDown((prev) => Math.max(0, prev - 1));
-      } else {
-        setDown((prev) => prev + 1);
-        if (miVoto === "up") setUp((prev) => Math.max(0, prev - 1));
-      }
-
-      setMiVoto(tipo);
+  const cargar = async () => {
+    try {
+      const res = await fetch(`/api/votos?producto_id=${productId}`);
+      const data = await res.json();
+      setUp(data.up ?? 0);
+      setDown(data.down ?? 0);
+      setMiVoto(data.miVoto ?? null);
+    } catch {
+      // silencio
     }
   };
 
+  useEffect(() => {
+    cargar();
+  }, [productId]);
+
+  const votar = async (tipo: "up" | "down") => {
+    if (!isSignedIn) return;
+    setCargando(true);
+    try {
+      const res = await fetch("/api/votos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ producto_id: productId, tipo }),
+      });
+      if (res.ok) {
+        await cargar();
+      }
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  if (!isSignedIn) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <SignInButton mode="modal">
+          <button className="text-orange-500 font-medium hover:underline">
+            Inicia sesión
+          </button>
+        </SignInButton>
+        <span>para votar</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-4 mt-6">
+    <div className="flex items-center gap-3">
       <button
         onClick={() => votar("up")}
-        className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition ${
+        disabled={cargando}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
           miVoto === "up"
-            ? "bg-green-100 border-green-500 text-green-700"
-            : "hover:bg-gray-50"
+            ? "bg-green-50 border-green-300 text-green-700"
+            : "border-gray-200 hover:border-green-300 hover:text-green-600"
         }`}
       >
-        <span className="text-xl">👍</span>
-        <span className="font-semibold">{up}</span>
+        👍 {up}
       </button>
-
       <button
         onClick={() => votar("down")}
-        className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition ${
+        disabled={cargando}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
           miVoto === "down"
-            ? "bg-red-100 border-red-500 text-red-700"
-            : "hover:bg-gray-50"
+            ? "bg-red-50 border-red-300 text-red-700"
+            : "border-gray-200 hover:border-red-300 hover:text-red-600"
         }`}
       >
-        <span className="text-xl">👎</span>
-        <span className="font-semibold">{down}</span>
+        👎 {down}
       </button>
     </div>
   );

@@ -14,17 +14,22 @@ export const metadata = {
 };
 
 export default async function Home() {
-const productos = await sql`SELECT * FROM productos WHERE disponible = true` as any;
+  const productos = (await sql`
+    SELECT * FROM productos 
+    WHERE disponible = true OR disponible IS NULL
+    ORDER BY id
+  `) as any;
+
   return (
     <main>
       <Header />
       <Hero />
       <Categories />
-     <Products productos={productos} />
+      <Products productos={productos} />
       <Benefits />
       <section className="max-w-7xl mx-auto px-6 py-16">
-  <NewsletterForm />
-</section>
+        <NewsletterForm />
+      </section>
       <Footer />
     </main>
   );

@@ -8,6 +8,7 @@ import { sql } from "../../lib/db";
 import UpdatePriceButton from "../../components/UpdatePriceButton";
 import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
+import Comments from "../../components/Comments";
 
 type Props = {
   params: Promise<{
@@ -17,7 +18,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const resultado = await sql`SELECT * FROM productos WHERE id = ${Number(id)}` as any;
+  const resultado = (await sql`SELECT * FROM productos WHERE id = ${Number(id)}`) as any;
   const producto = resultado[0];
 
   if (!producto) {
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function ProductoPage({ params }: Props) {
   const { id } = await params;
 
-  const resultado = await sql`SELECT * FROM productos WHERE id = ${Number(id)}` as any;
+  const resultado = (await sql`SELECT * FROM productos WHERE id = ${Number(id)}`) as any;
   const producto = resultado[0];
 
   if (!producto) {
@@ -59,6 +60,15 @@ export default async function ProductoPage({ params }: Props) {
   );
   const ahorro = precioAnterior - precioActual;
   const porcentajeAhorro = Math.round((ahorro / precioAnterior) * 100);
+
+  // Productos relacionados
+  const relacionados = (await sql`
+    SELECT * FROM productos
+    WHERE categoria = ${producto.categoria}
+      AND id != ${producto.id}
+      AND (disponible = true OR disponible IS NULL)
+    LIMIT 4
+  `) as any[];
 
   return (
     <>
@@ -151,7 +161,8 @@ export default async function ProductoPage({ params }: Props) {
                 </span>
               </div>
               <p className="mt-2 text-green-600 font-semibold">
-                Ahorras {ahorro.toFixed(2).replace(".", ",")} € ({porcentajeAhorro}%)
+                Ahorras {ahorro.toFixed(2).replace(".", ",")} € (
+                {porcentajeAhorro}%)
               </p>
             </div>
 
@@ -175,7 +186,6 @@ export default async function ProductoPage({ params }: Props) {
                 productId={producto.id}
                 precioAnterior={producto.antes}
               />
-
               <PriceAlertButton
                 productId={producto.id}
                 precioActual={producto.precio}
@@ -184,35 +194,85 @@ export default async function ProductoPage({ params }: Props) {
             </div>
 
             {/* Historial de precios */}
-            {producto.historial_precios && producto.historial_precios.length > 0 && (
-              <div className="mt-10">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <span>📈</span> Historial de precios
-                </h2>
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left p-4 font-medium text-gray-600">Fecha</th>
-                        <th className="text-left p-4 font-medium text-gray-600">Precio</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {producto.historial_precios.map(
-                        (item: { fecha: string; precio: string }, index: number) => (
-                          <tr key={index} className="border-t border-gray-100 hover:bg-gray-50">
-                            <td className="p-4 text-gray-700">{item.fecha}</td>
-                            <td className="p-4 font-semibold text-orange-500">{item.precio}</td>
-                          </tr>
-                        )
-                      )}
-                    </tbody>
-                  </table>
+            {producto.historial_precios &&
+              producto.historial_precios.length > 0 && (
+                <div className="mt-10">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span>📈</span> Historial de precios
+                  </h2>
+                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left p-4 font-medium text-gray-600">
+                            Fecha
+                          </th>
+                          <th className="text-left p-4 font-medium text-gray-600">
+                            Precio
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {producto.historial_precios.map(
+                          (
+                            item: { fecha: string; precio: string },
+                            index: number
+                          ) => (
+                            <tr
+                              key={index}
+                              className="border-t border-gray-100 hover:bg-gray-50"
+                            >
+                              <td className="p-4 text-gray-700">
+                                {item.fecha}
+                              </td>
+                              <td className="p-4 font-semibold text-orange-500">
+                                {item.precio}
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
+
+        {/* Productos relacionados */}
+        {relacionados.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+              {relacionados.map((item: any) => (
+                <Link
+                  key={item.id}
+                  href={`/producto/${item.id}`}
+                  className="bg-white rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden"
+                >
+                  <Image
+                    src={item.imagen}
+                    alt={item.nombre}
+                    width={300}
+                    height={300}
+                    className="w-full h-44 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="font-semibold text-sm line-clamp-2">
+                      {item.nombre}
+                    </h3>
+                    <p className="text-orange-500 font-bold mt-2">
+                      {item.precio}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Comentarios */}
+        <Comments productoId={producto.id} />
       </main>
       <Footer />
     </>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,32 +20,20 @@ export const metadata: Metadata = {
   },
   description:
     "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más. Ahorra dinero todos los días con Oferthis.",
-  keywords: [
-    "ofertas",
-    "descuentos",
-    "Amazon",
-    "eBay",
-    "AliExpress",
-    "SHEIN",
-    "chollos",
-    "Oferthis",
-  ],
   openGraph: {
     title: "Oferthis - Las mejores ofertas",
     description:
-      "Encuentra descuentos reales de Amazon y otras tiendas. Productos actualizados automáticamente.",
-    type: "website",
-    locale: "es_ES",
+      "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
+    url: "https://oferthis.com",
     siteName: "Oferthis",
+    locale: "es_ES",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Oferthis - Las mejores ofertas",
-    description: "Encuentra descuentos reales de Amazon y otras tiendas.",
-  },
-  robots: {
-    index: true,
-    follow: true,
+    description:
+      "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
   },
 };
 

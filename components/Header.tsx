@@ -44,9 +44,9 @@ export default function Header() {
 
           <Show when="signed-out">
             <SignInButton mode="modal">
-              <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold transition text-sm border-3 border-black">
-  Entrar
-</button>
+              <button className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-lg font-bold transition text-sm">
+                Entrar
+              </button>
             </SignInButton>
           </Show>
 
