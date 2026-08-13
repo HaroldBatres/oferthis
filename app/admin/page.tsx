@@ -8,6 +8,7 @@ import CaducarProductButton from "../components/CaducarProductButton";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import MarkUnavailableButton from "../components/MarkUnavailableButton";
+import EditProductButton from "../components/EditProductButton";
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -18,10 +19,7 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-      const productos = await sql`
-    SELECT * FROM productos
-    ORDER BY id
-  ` as any;
+      const productos = await sql`SELECT * FROM productos` as any;
 
   return (
     <>
@@ -101,29 +99,30 @@ export default async function AdminPage() {
                     )}
                   </td>
                   <td className="p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Link
-                        href={`/producto/${p.id}`}
-                        className="text-orange-500 hover:underline text-sm"
-                      >
-                        Ver
-                      </Link>
-                      <DeleteProductButton
-                        productId={p.id}
-                        productName={p.nombre}
-                      />
-                      <MarkUnavailableButton
-    productId={p.id}
-    productName={p.nombre}
-  />
-                      {p.disponible !== false && (
-                        <CaducarProductButton
-                          productId={p.id}
-                          productName={p.nombre}
-                        />
-                      )}
-                    </div>
-                  </td>
+  <div className="flex flex-wrap items-center gap-3">
+    <Link
+      href={`/producto/${p.id}`}
+      className="text-orange-500 hover:underline text-sm"
+    >
+      Ver
+    </Link>
+    <EditProductButton producto={p} />
+    <DeleteProductButton
+      productId={p.id}
+      productName={p.nombre}
+    />
+    <MarkUnavailableButton
+      productId={p.id}
+      productName={p.nombre}
+    />
+    {p.disponible !== false && (
+      <CaducarProductButton
+        productId={p.id}
+        productName={p.nombre}
+      />
+    )}
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>

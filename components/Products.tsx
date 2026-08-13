@@ -24,12 +24,11 @@ export default function Products({ productos }: Props) {
                   <FavoriteButton productId={producto.id} />
                 </div>
 
-                <Image
+                                              <img
                   src={producto.imagen}
-                  alt={producto.nombre}
-                  width={400}
-                  height={400}
-                  className="w-full h-full object-cover"
+                  alt={producto.nombre || "Producto"}
+                  className="w-full h-64 object-cover"
+                  referrerPolicy="no-referrer"
                 />
               </div>
 

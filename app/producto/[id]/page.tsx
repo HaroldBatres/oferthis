@@ -5,7 +5,6 @@ import ShareButton from "../../components/ShareButton";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { sql } from "../../lib/db";
-import UpdatePriceButton from "../../components/UpdatePriceButton";
 import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
@@ -82,18 +81,16 @@ export default async function ProductoPage({ params }: Props) {
           Volver a las ofertas
         </Link>
 
-        <div className="grid md:grid-cols-2 gap-10 md:gap-14">
-          {/* Imagen */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border">
-            <Image
-              src={producto.imagen}
-              alt={producto.nombre}
-              width={600}
-              height={600}
-              className="w-full h-auto object-cover"
-              priority
-            />
-          </div>
+          <div className="grid md:grid-cols-2 gap-10 md:gap-14">
+                             {/* Imagen */}
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border">
+          <img
+                       src={producto.imagen}
+            alt="Prueba"
+            className="w-full h-auto block"
+            referrerPolicy="no-referrer"
+          />
+        </div>
 
           {/* Información */}
           <div>
@@ -181,11 +178,7 @@ export default async function ProductoPage({ params }: Props) {
               <ShareButton />
             </div>
 
-            <div className="mt-4 space-y-3">
-              <UpdatePriceButton
-                productId={producto.id}
-                precioAnterior={producto.antes}
-              />
+                       <div className="mt-4 space-y-3">
               <PriceAlertButton
                 productId={producto.id}
                 precioActual={producto.precio}
