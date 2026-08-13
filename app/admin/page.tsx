@@ -7,6 +7,7 @@ import CreateProductForm from "../components/CreateProductForm";
 import CaducarProductButton from "../components/CaducarProductButton";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import MarkUnavailableButton from "../components/MarkUnavailableButton";
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -17,7 +18,10 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const productos = (await sql`SELECT * FROM productos ORDER BY id`) as any;
+      const productos = await sql`
+    SELECT * FROM productos
+    ORDER BY id
+  ` as any;
 
   return (
     <>
@@ -108,6 +112,10 @@ export default async function AdminPage() {
                         productId={p.id}
                         productName={p.nombre}
                       />
+                      <MarkUnavailableButton
+    productId={p.id}
+    productName={p.nombre}
+  />
                       {p.disponible !== false && (
                         <CaducarProductButton
                           productId={p.id}

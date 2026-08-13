@@ -4,26 +4,23 @@ import { sql } from "../../lib/db";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const email = (body.email || "").trim().toLowerCase();
+    const { id } = body;
 
-    if (!email || !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Email no válido" },
-        { status: 400 }
-      );
+    if (!id) {
+      return NextResponse.json({ error: "Falta el id" }, { status: 400 });
     }
 
     await sql`
-      INSERT INTO newsletter (email)
-      VALUES (${email})
-      ON CONFLICT (email) DO NOTHING
+      UPDATE productos
+      SET disponible = false
+      WHERE id = ${Number(id)}
     `;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json(
-      { error: error?.message || "Error al guardar el email" },
+      { error: error?.message || "Error al marcar producto" },
       { status: 500 }
     );
   }

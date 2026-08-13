@@ -20,14 +20,22 @@ export const metadata: Metadata = {
   },
   description:
     "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más. Ahorra dinero todos los días con Oferthis.",
-  openGraph: {
+      openGraph: {
     title: "Oferthis - Las mejores ofertas",
     description:
       "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
-    url: "https://oferthis.com",
+    url: "https://oferthis.vercel.app",
     siteName: "Oferthis",
     locale: "es_ES",
     type: "website",
+    images: [
+      {
+        url: "https://oferthis.vercel.app/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "Oferthis - Las mejores ofertas",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

@@ -12,9 +12,9 @@ export default function UpdatePriceButton({ productId, precioAnterior }: Props) 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: productId,
-        nuevoPrecio: "159,99€",
+                nuevoPrecio: "139,99€",
         precioAnterior: precioAnterior,
-        descuento: "-48%",
+        descuento: "-55%",
       }),
     });
 

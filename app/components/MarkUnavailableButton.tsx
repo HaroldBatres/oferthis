@@ -6,35 +6,16 @@ type Props = {
 };
 
 export default function MarkUnavailableButton({ productId, productName }: Props) {
-  const handleMark = async () => {
-    const confirmar = confirm(
-      `¿Marcar "${productName}" como oferta caducada?`
-    );
+  const handleClick = async () => {
+    if (!confirm(`¿Marcar "${productName}" como no disponible?`)) return;
 
-    if (!confirmar) return;
-
-    const res = await fetch("/api/actualizar-precio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: productId,
-        nuevoPrecio: "Caducado",
-        precioAnterior: "Caducado",
-        descuento: "0%",
-      }),
-    });
-
-    // Mejor: crear una API específica, pero por ahora usamos una actualización simple
-    const res2 = await fetch("/api/marcar-caducado", {
+    const res = await fetch("/api/marcar-no-disponible", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: productId }),
     });
 
-    const data = await res2.json();
-
-    if (data.success) {
-      alert("Producto marcado como caducado");
+    if (res.ok) {
       window.location.reload();
     } else {
       alert("Error al marcar el producto");
@@ -43,10 +24,10 @@ export default function MarkUnavailableButton({ productId, productName }: Props)
 
   return (
     <button
-      onClick={handleMark}
-      className="text-yellow-600 hover:underline text-sm ml-3"
+      onClick={handleClick}
+      className="text-sm text-red-600 hover:underline ml-3"
     >
-      Caducar
+      No disponible
     </button>
   );
 }

@@ -22,21 +22,23 @@ export default function PriceAlertButton({ productId, precioActual }: Props) {
       return;
     }
 
-    const res = await fetch("/api/alertas", {
+       const res = await fetch("/api/crear-alerta", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId,
+            body: JSON.stringify({
+        productoId: productId,
         precioObjetivo,
       }),
     });
+
+        const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
       setMensaje("¡Alerta creada! Te avisaremos cuando baje de precio.");
       setMostrar(false);
       setPrecioObjetivo("");
     } else {
-      setMensaje("Error al crear la alerta");
+      setMensaje(data.error || "Error al crear la alerta");
     }
   };
 

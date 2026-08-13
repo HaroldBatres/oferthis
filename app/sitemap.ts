@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { sql } from "./lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://oferthis.com"; // más adelante tu dominio real
+    const baseUrl = "https://oferthis.vercel.app";
 
   const productos = (await sql`
     SELECT id FROM productos
