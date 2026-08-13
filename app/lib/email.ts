@@ -1,6 +1,12 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    throw new Error("RESEND_API_KEY no está configurada");
+  }
+  return new Resend(key);
+}
 
 export async function enviarAlertaPrecio(params: {
   to: string;
@@ -13,6 +19,7 @@ export async function enviarAlertaPrecio(params: {
     params;
 
   try {
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from: "Oferthis <onboarding@resend.dev>",
       to: [to],
@@ -26,7 +33,7 @@ export async function enviarAlertaPrecio(params: {
             Tu objetivo: <strong>${precioObjetivo}</strong>
           </p>
           <p>
-            <a href="https://oferthis.vercel.app/producto/${productoId}"
+            <a href="https://oferthis.com/producto/${productoId}"
                style="display:inline-block;background:#f97316;color:white;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
               Ver oferta
             </a>
