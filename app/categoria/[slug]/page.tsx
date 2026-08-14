@@ -86,11 +86,11 @@ const productosPaginados = productosFiltrados.slice(
     <Header />
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
       {/* Botón volver */}
-      <Link
+            <Link
         href="/"
-        className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
+        className="inline-flex items-center gap-2 mb-8 text-base sm:text-lg font-semibold text-gray-700 hover:text-orange-500 transition-colors"
       >
-        <span className="text-lg">←</span>
+        <span className="text-xl">←</span>
         Volver a las ofertas
       </Link>
 
