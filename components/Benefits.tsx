@@ -4,9 +4,9 @@ export default function Benefits() {
 
       <div className="max-w-7xl mx-auto px-6">
 
-        <h3 className="text-4xl font-bold text-center mb-16">
-          ¿Por qué usar Oferthis?
-        </h3>
+                    <h4 className="font-bold text-2xl mt-6 text-gray-900">
+              Rápido
+            </h4>
 
         <div className="grid md:grid-cols-3 gap-10">
 
@@ -14,8 +14,8 @@ export default function Benefits() {
 
             <div className="text-6xl">⚡</div>
 
-            <h4 className="font-bold text-2xl mt-6">
-              Actualización automática
+                    <h4 className="font-bold text-2xl mt-6 text-gray-900">
+              Solo ofertas reales
             </h4>
 
             <p className="text-gray-500 mt-4">
@@ -28,9 +28,9 @@ export default function Benefits() {
 
             <div className="text-6xl">💰</div>
 
-            <h4 className="font-bold text-2xl mt-6">
-              Solo ofertas reales
-            </h4>
+                    <h3 className="text-4xl font-bold text-center mb-16 text-gray-900">
+          ¿Por qué usar Oferthis?
+        </h3>
 
             <p className="text-gray-500 mt-4">
               Evitamos descuentos falsos y productos inflados.
@@ -42,8 +42,8 @@ export default function Benefits() {
 
             <div className="text-6xl">🚀</div>
 
-            <h4 className="font-bold text-2xl mt-6">
-              Rápido
+                       <h4 className="font-bold text-2xl mt-6 text-gray-900">
+              Actualización automática
             </h4>
 
             <p className="text-gray-500 mt-4">

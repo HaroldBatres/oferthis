@@ -30,7 +30,9 @@ export default function NewsletterForm() {
 
   return (
     <div className="bg-orange-50 rounded-2xl p-8 border border-orange-100">
-      <h3 className="text-2xl font-bold mb-2">📬 Recibe las mejores ofertas</h3>
+      <h3 className="text-2xl font-bold mb-2 text-gray-900">
+        📬 Recibe las mejores ofertas
+      </h3>
       <p className="text-gray-600 mb-6">
         Suscríbete y te enviaremos las mejores chollos cada semana.
       </p>
@@ -42,7 +44,8 @@ export default function NewsletterForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Tu email"
           required
-          className="flex-1 border rounded-xl px-4 py-3"
+          className="flex-1 border rounded-xl px-4 py-3 text-gray-900"
+          style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
         />
         <button
           type="submit"

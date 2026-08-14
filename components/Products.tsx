@@ -34,7 +34,7 @@ function ProductCard({ producto }: { producto: any }) {
         </div>
 
         <div className="p-4">
-          <h4 className="font-bold text-sm sm:text-base line-clamp-2 min-h-[2.5rem]">
+                    <h4 className="font-bold text-sm sm:text-base line-clamp-2 min-h-[2.5rem] text-gray-900">
             {producto.nombre}
           </h4>
           <div className="mt-3 flex items-center gap-2">
