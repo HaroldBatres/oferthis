@@ -81,7 +81,8 @@ export default function Comments({ productoId }: Props) {
             onChange={(e) => setTexto(e.target.value)}
             placeholder="Escribe tu comentario..."
             rows={3}
-            className="w-full border border-gray-200 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                       className="w-full border border-gray-200 rounded-xl p-4 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
           />
           <button
             type="submit"
@@ -115,14 +116,14 @@ export default function Comments({ productoId }: Props) {
               className="bg-white border border-gray-100 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-sm">
+                                <span className="font-semibold text-sm text-gray-900">
                   {c.user_name || "Usuario"}
                 </span>
                 <span className="text-xs text-gray-400">
                   {new Date(c.created_at).toLocaleDateString("es-ES")}
                 </span>
               </div>
-              <p className="text-sm text-gray-700">{c.texto}</p>
+                            <p className="text-sm text-gray-900">{c.texto}</p>
             </div>
           ))}
         </div>

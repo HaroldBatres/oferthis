@@ -108,7 +108,7 @@ export default async function ProductoPage({ params }: Props) {
               Referencia #{producto.id}
             </p>
 
-            <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight">
+                        <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight text-gray-900">
               {producto.nombre}
             </h1>
 
