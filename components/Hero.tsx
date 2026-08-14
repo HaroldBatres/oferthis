@@ -11,22 +11,23 @@ export default function Hero() {
         </p>
 
         {/* Buscador gigante */}
-        <form
+                        <form
           action="/buscar"
           method="get"
-          className="mt-8 sm:mt-10 max-w-2xl mx-auto"
+          className="mt-8 sm:mt-10 max-w-2xl mx-auto w-full px-1"
         >
-          <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus-within:border-orange-400 transition p-2">
-            <input
+          <div className="flex items-center gap-2 bg-white border-2 border-orange-300 rounded-2xl shadow-sm focus-within:border-orange-500 transition p-1.5 sm:p-2 w-full max-w-full">
+                        <input
               type="search"
               name="q"
-              placeholder="Buscar ofertas... (ej: monitor, airpods, silla gamer)"
-              className="flex-1 px-4 py-3 sm:py-4 text-base sm:text-lg outline-none rounded-xl"
+              placeholder="Buscar ofertas..."
+              className="flex-1 min-w-0 px-3 sm:px-4 py-3 sm:py-4 text-base sm:text-lg outline-none rounded-xl"
+              style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
               required
             />
             <button
               type="submit"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 sm:px-8 py-3 sm:py-4 rounded-xl transition shrink-0"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl transition shrink-0 text-sm sm:text-base"
             >
               Buscar
             </button>
