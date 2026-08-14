@@ -33,7 +33,10 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
 
   const categoriaNombre = slug.charAt(0).toUpperCase() + slug.slice(1);
 
- const todosLosProductos = await sql`SELECT * FROM productos WHERE disponible = true` as any;
+  const todosLosProductos = (await sql`
+    SELECT * FROM productos
+    WHERE disponible = true OR disponible IS NULL
+  `) as any;
 
 let productosFiltrados = todosLosProductos
   .filter((p: any) =>
@@ -199,12 +202,11 @@ const productosPaginados = productosFiltrados.slice(
               className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden"
             >
               <div className="relative overflow-hidden">
-                <Image
+                                <img
                   src={item.imagen}
                   alt={item.nombre}
-                  width={300}
-                  height={300}
                   className="w-full h-48 object-cover group-hover:scale-105 transition duration-300"
+                  referrerPolicy="no-referrer"
                 />
                 <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
                   {item.descuento}

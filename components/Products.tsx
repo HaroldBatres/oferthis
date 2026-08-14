@@ -1,61 +1,113 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import FavoriteButton from "../app/components/FavoriteButton";
 
 type Props = {
   productos: any[];
 };
 
-export default function Products({ productos }: Props) {
+function parseDescuento(descuento: string) {
+  if (!descuento) return 0;
+  return parseInt(String(descuento).replace("%", "").replace("-", "")) || 0;
+}
+
+function ProductCard({ producto }: { producto: any }) {
   return (
-    <section className="max-w-7xl mx-auto px-6 pb-20">
-      <div className="flex items-center justify-between mb-10">
-        <h3 className="text-4xl font-bold">Ofertas destacadas</h3>
+    <Link href={`/producto/${producto.id}`}>
+      <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full border border-gray-100">
+        <div className="relative bg-gray-100 h-48 sm:h-56">
+          <div className="absolute top-3 right-3 z-10">
+            <FavoriteButton productId={producto.id} />
+          </div>
+          <img
+            src={producto.imagen}
+            alt={producto.nombre || "Producto"}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          {producto.descuento && (
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
+              {producto.descuento}
+            </span>
+          )}
+        </div>
+
+        <div className="p-4">
+          <h4 className="font-bold text-sm sm:text-base line-clamp-2 min-h-[2.5rem]">
+            {producto.nombre}
+          </h4>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-xl font-bold text-orange-500">
+              {producto.precio}
+            </span>
+            {producto.antes && (
+              <span className="text-sm line-through text-gray-400">
+                {producto.antes}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-xs text-gray-500">{producto.tienda}</p>
+        </div>
       </div>
+    </Link>
+  );
+}
 
-      <div className="grid md:grid-cols-4 gap-8">
-        {productos.map((producto) => (
-          <Link key={producto.id} href={`/producto/${producto.id}`}>
-            <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="relative bg-gray-200 h-64 flex items-center justify-center">
-                <div className="absolute top-3 right-3 z-10">
-                  <FavoriteButton productId={producto.id} />
-                </div>
+function ProductSection({
+  titulo,
+  icono,
+  items,
+}: {
+  titulo: string;
+  icono: string;
+  items: any[];
+}) {
+  if (!items.length) return null;
 
-                                              <img
-                  src={producto.imagen}
-                  alt={producto.nombre || "Producto"}
-                  className="w-full h-64 object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-
-              <div className="p-6">
-                <span className="bg-red-500 text-white px-3 py-1 rounded text-sm">
-                  {producto.descuento}
-                </span>
-
-                <h4 className="font-bold text-xl mt-5">{producto.nombre}</h4>
-
-                <div className="mt-6">
-                  <span className="text-3xl font-bold text-orange-500">
-                    {producto.precio}
-                  </span>
-                  <span className="ml-3 line-through text-gray-400">
-                    {producto.antes}
-                  </span>
-                </div>
-
-                <button className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold">
-                  Ver en {producto.tienda}
-                </button>
-              </div>
-            </div>
-          </Link>
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 md:pb-16">
+      <h3 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">
+        {icono} {titulo}
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        {items.map((producto) => (
+          <ProductCard key={producto.id} producto={producto} />
         ))}
       </div>
     </section>
+  );
+}
+
+export default function Products({ productos }: Props) {
+  const lista = Array.isArray(productos) ? productos : [];
+
+  // Ofertas Flash: con etiqueta, o los 4 primeros
+  const ofertasFlash = (
+    lista.filter((p) => p.etiqueta) .length > 0
+      ? lista.filter((p) => p.etiqueta)
+      : lista
+  ).slice(0, 4);
+
+  // Mayor descuento
+  const mayorDescuento = [...lista]
+    .sort((a, b) => parseDescuento(b.descuento) - parseDescuento(a.descuento))
+    .slice(0, 4);
+
+  // Más populares (valoración o opiniones)
+  const masPopulares = [...lista]
+    .sort((a, b) => {
+      const scoreA = (Number(a.valoracion) || 0) * 1000 + (Number(a.opiniones) || 0);
+      const scoreB = (Number(b.valoracion) || 0) * 1000 + (Number(b.opiniones) || 0);
+      return scoreB - scoreA;
+    })
+    .slice(0, 4);
+
+  return (
+    <div className="pt-4">
+      <ProductSection titulo="Ofertas Flash" icono="🔥" items={ofertasFlash} />
+      <ProductSection titulo="Mayor descuento" icono="📉" items={mayorDescuento} />
+      <ProductSection titulo="Más populares" icono="⭐" items={masPopulares} />
+    </div>
   );
 }

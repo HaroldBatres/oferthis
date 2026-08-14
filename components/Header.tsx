@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import SearchBar from "./SearchBar";
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs";
 
 export default function Header() {
@@ -16,10 +15,6 @@ export default function Header() {
         >
           Ofer<span className="text-orange-500">this</span>
         </Link>
-
-        <div className="flex-1 max-w-md hidden sm:block">
-          <SearchBar />
-        </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
@@ -71,10 +66,6 @@ export default function Header() {
             Deporte
           </Link>
         </nav>
-      </div>
-
-      <div className="sm:hidden px-4 pb-3">
-        <SearchBar />
       </div>
     </header>
   );

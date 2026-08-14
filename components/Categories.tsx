@@ -1,32 +1,32 @@
 import Link from "next/link";
 
 const categorias = [
-  { nombre: "Tecnología", slug: "tecnologia" },
-  { nombre: "Hogar", slug: "hogar" },
-  { nombre: "Gaming", slug: "gaming" },
-  { nombre: "Deporte", slug: "deporte" },
-  { nombre: "Cocina", slug: "cocina" },
-  { nombre: "Moda", slug: "moda" },
-  { nombre: "Belleza", slug: "belleza" },
-  { nombre: "Mascotas", slug: "mascotas" },
+  { nombre: "Tecnología", slug: "tecnologia", icono: "💻" },
+  { nombre: "Hogar", slug: "hogar", icono: "🏠" },
+  { nombre: "Gaming", slug: "gaming", icono: "🎮" },
+  { nombre: "Deporte", slug: "deporte", icono: "⚽" },
+  { nombre: "Cocina", slug: "cocina", icono: "🍳" },
+  { nombre: "Moda", slug: "moda", icono: "👕" },
+  { nombre: "Belleza", slug: "belleza", icono: "💄" },
+  { nombre: "Mascotas", slug: "mascotas", icono: "🐾" },
 ];
 
 export default function Categories() {
   return (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16">
       <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 md:mb-10 text-gray-900">
-        Explora categorías
+        Categorías
       </h3>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
         {categorias.map((categoria) => (
           <Link
             key={categoria.slug}
             href={`/categoria/${categoria.slug}`}
-            className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-orange-300 transition text-center font-semibold text-gray-900"
+            className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-300 hover:-translate-y-0.5 transition text-center"
           >
-            <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📦</div>
-            <span className="text-sm sm:text-base text-gray-900">
+            <div className="text-3xl sm:text-4xl mb-2">{categoria.icono}</div>
+            <span className="text-xs sm:text-sm font-semibold text-gray-800">
               {categoria.nombre}
             </span>
           </Link>
