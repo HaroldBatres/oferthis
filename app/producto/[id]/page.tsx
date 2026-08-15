@@ -83,11 +83,11 @@ export default async function ProductoPage({ params }: Props) {
 
           <div className="grid md:grid-cols-2 gap-10 md:gap-14">
                              {/* Imagen */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border">
+               <div className="bg-gray-50 rounded-2xl overflow-hidden shadow-sm border flex items-center justify-center min-h-[280px] max-h-[520px]">
           <img
-                       src={producto.imagen}
-            alt="Prueba"
-            className="w-full h-auto block"
+            src={producto.imagen}
+            alt={producto.nombre}
+            className="w-full h-auto max-h-[520px] object-contain"
             referrerPolicy="no-referrer"
           />
         </div>
