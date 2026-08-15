@@ -23,7 +23,7 @@ function ProductCard({ producto }: { producto: any }) {
           <img
             src={producto.imagen}
             alt={producto.nombre || "Producto"}
-            className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
             referrerPolicy="no-referrer"
           />
           {producto.descuento && (
