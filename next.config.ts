@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.ebayimg.com",
+        pathname: "/**",
+      },
     ],
   },
 };

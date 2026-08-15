@@ -9,6 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import MarkUnavailableButton from "../components/MarkUnavailableButton";
 import EditProductButton from "../components/EditProductButton";
+import SyncEbayButton from "../components/SyncEbayButton";
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -25,23 +26,24 @@ export default async function AdminPage() {
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold">
-              Panel de Administración
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Gestiona los productos de Oferthis
-            </p>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+  <div>
+    <h1 className="text-3xl md:text-4xl font-bold">Panel de Administración</h1>
+    <p className="text-gray-500 mt-1">
+      Gestiona los productos de Oferthis
+    </p>
+  </div>
 
-          <Link
-            href="/"
-            className="text-sm text-gray-600 hover:text-orange-500 transition"
-          >
-            ← Volver a la web
-          </Link>
-        </div>
+  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <SyncEbayButton />
+    <Link
+      href="/"
+      className="text-sm text-center text-gray-600 hover:text-orange-500 transition"
+    >
+      ← Volver a la web
+    </Link>
+  </div>
+</div>
 
         <CreateProductForm />
 
