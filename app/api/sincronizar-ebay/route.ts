@@ -69,16 +69,14 @@ export async function GET() {
         const nombre = item.title || "Sin título";
         titulosVivos.add(nombre);
 
-               const precioValor = item.price?.value || "0";
+                 const precioValor = item.price?.value || "0";
         const moneda = item.price?.currency || "EUR";
         const precio = `${precioValor}${moneda === "EUR" ? "€" : " " + moneda}`;
         const imagenRaw =
           item.image?.imageUrl ||
           item.thumbnailImages?.[0]?.imageUrl ||
           "https://picsum.photos/400/400";
-        const imagen = imagenRaw
-          .replace(/\/s-l\d+\./, "/s-l1600.")
-          .replace(/\/s-l\d+\?/, "/s-l1600?");
+        const imagen = String(imagenRaw).replace(/s-l\d+/gi, "s-l1600");
         const url = item.itemWebUrl || "https://www.ebay.es";
         const ahora = new Date().toISOString();
 
