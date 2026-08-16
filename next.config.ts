@@ -27,6 +27,21 @@ const nextConfig: NextConfig = {
         hostname: "i.ebayimg.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.shopify.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ae01.alicdn.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "xc-goods.oss-cn-shenzhen.aliyuncs.com",
+        pathname: "/**",
+      },
     ],
   },
 };

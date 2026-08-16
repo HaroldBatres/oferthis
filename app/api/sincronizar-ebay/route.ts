@@ -71,11 +71,41 @@ async function getEbayItemImages(
 }
 
 const BUSQUEDAS = [
-  { q: "auriculares", categoria: "Tecnología" },
+  // Tecnología
   { q: "portatil", categoria: "Tecnología" },
-  { q: "raton gaming", categoria: "Gaming" },
+  { q: "smartphone", categoria: "Tecnología" },
+  { q: "auriculares bluetooth", categoria: "Tecnología" },
+  { q: "tablet", categoria: "Tecnología" },
+  { q: "smartwatch", categoria: "Tecnología" },
+  { q: "monitor", categoria: "Tecnología" },
+  // Hogar
   { q: "robot aspirador", categoria: "Hogar" },
+  { q: "aspiradora", categoria: "Hogar" },
+  { q: "humidificador", categoria: "Hogar" },
+  { q: "ventilador", categoria: "Hogar" },
+  // Gaming
+  { q: "playstation", categoria: "Gaming" },
+  { q: "xbox", categoria: "Gaming" },
+  { q: "raton gaming", categoria: "Gaming" },
+  { q: "teclado mecanico", categoria: "Gaming" },
+  { q: "mando consola", categoria: "Gaming" },
+  // Deporte
   { q: "zapatillas running", categoria: "Deporte" },
+  { q: "zapatillas deporte", categoria: "Deporte" },
+  { q: "bicicleta", categoria: "Deporte" },
+  // Cocina
+  { q: "freidora aire", categoria: "Cocina" },
+  { q: "cafetera", categoria: "Cocina" },
+  { q: "batidora", categoria: "Cocina" },
+  // Moda
+  { q: "zapatillas hombre", categoria: "Moda" },
+  { q: "mochila", categoria: "Moda" },
+  // Belleza
+  { q: "secador pelo", categoria: "Belleza" },
+  { q: "plancha pelo", categoria: "Belleza" },
+  // Mascotas
+  { q: "comedero perro", categoria: "Mascotas" },
+  { q: "juguete gato", categoria: "Mascotas" },
 ];
 
 export async function GET() {
@@ -92,7 +122,7 @@ export async function GET() {
     for (const busqueda of BUSQUEDAS) {
       const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
         busqueda.q
-      )}&limit=5`;
+          )}&limit=20`;
 
       const searchRes = await fetch(searchUrl, {
         headers: {
@@ -112,9 +142,34 @@ export async function GET() {
         const nombre = item.title || "Sin título";
         titulosVivos.add(nombre);
 
-        const precioValor = item.price?.value || "0";
+                const precioValor = parseFloat(item.price?.value || "0");
         const moneda = item.price?.currency || "EUR";
-        const precio = `${precioValor}${moneda === "EUR" ? "€" : " " + moneda}`;
+        const precio = `${item.price?.value || "0"}${moneda === "EUR" ? "€" : " " + moneda}`;
+
+        // Precio original / tachado si eBay lo envía
+        const originalValor = parseFloat(
+          item.marketingPrice?.originalPrice?.value ||
+            item.marketingPrice?.price?.value ||
+            "0"
+        );
+
+        let antes = precio;
+        let descuento = "-0%";
+
+        if (originalValor > precioValor && precioValor > 0) {
+          const pct = Math.round(
+            ((originalValor - precioValor) / originalValor) * 100
+          );
+          if (pct >= 5) {
+            antes = `${item.marketingPrice?.originalPrice?.value || originalValor}${moneda === "EUR" ? "€" : " " + moneda}`;
+            descuento = `-${pct}%`;
+          }
+        }
+
+        // Solo ofertas reales (mín. 5% descuento)
+        if (descuento === "-0%") {
+          continue;
+        }
 
         const imagenRaw =
           item.image?.imageUrl ||
@@ -164,9 +219,9 @@ export async function GET() {
             ) VALUES (
               ${nombre},
               'eBay',
-              ${precio},
-              ${precio},
-              '-0%',
+                            ${precio},
+              ${antes},
+              ${descuento},
               ${busqueda.categoria},
               ${imagen},
               ${imagenesJson}::jsonb,
