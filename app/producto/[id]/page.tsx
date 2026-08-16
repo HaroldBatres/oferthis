@@ -8,6 +8,7 @@ import { sql } from "../../lib/db";
 import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
+import ProductImageGallery from "../../components/ProductImageGallery";
 
 type Props = {
   params: Promise<{
@@ -17,7 +18,9 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const resultado = (await sql`SELECT * FROM productos WHERE id = ${Number(id)}`) as any;
+  const resultado = (await sql`
+    SELECT * FROM productos WHERE id = ${Number(id)}
+  `) as any;
   const producto = resultado[0];
 
   if (!producto) {
@@ -35,7 +38,9 @@ export async function generateMetadata({ params }: Props) {
 export default async function ProductoPage({ params }: Props) {
   const { id } = await params;
 
-  const resultado = (await sql`SELECT * FROM productos WHERE id = ${Number(id)}`) as any;
+  const resultado = (await sql`
+    SELECT * FROM productos WHERE id = ${Number(id)}
+  `) as any;
   const producto = resultado[0];
 
   if (!producto) {
@@ -60,7 +65,6 @@ export default async function ProductoPage({ params }: Props) {
   const ahorro = precioAnterior - precioActual;
   const porcentajeAhorro = Math.round((ahorro / precioAnterior) * 100);
 
-  // Productos relacionados
   const relacionados = (await sql`
     SELECT * FROM productos
     WHERE categoria = ${producto.categoria}
@@ -81,18 +85,32 @@ export default async function ProductoPage({ params }: Props) {
           Volver a las ofertas
         </Link>
 
-          <div className="grid md:grid-cols-2 gap-10 md:gap-14">
-                             {/* Imagen */}
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border">
-          <img
-            src={producto.imagen}
+        <div className="grid md:grid-cols-[1.6fr_1fr] gap-8 md:gap-12 items-start">
+                  {/* Imagen izquierda */}
+                    <ProductImageGallery
+            imagenes={(() => {
+              let lista: string[] = [];
+              if (producto.imagenes) {
+                if (Array.isArray(producto.imagenes)) {
+                  lista = producto.imagenes;
+                } else if (typeof producto.imagenes === "string") {
+                  try {
+                    const parsed = JSON.parse(producto.imagenes);
+                    if (Array.isArray(parsed)) lista = parsed;
+                  } catch {
+                    /* ignore */
+                  }
+                }
+              }
+              if (lista.length === 0 && producto.imagen) {
+                lista = [producto.imagen];
+              }
+              return lista;
+            })()}
             alt={producto.nombre}
-            className="w-full h-auto object-contain"
-            referrerPolicy="no-referrer"
           />
-        </div>
 
-          {/* Información */}
+          {/* Información derecha */}
           <div>
             <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-semibold">
               {producto.descuento}
@@ -108,7 +126,7 @@ export default async function ProductoPage({ params }: Props) {
               Referencia #{producto.id}
             </p>
 
-                        <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight text-gray-900">
+            <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight text-gray-900">
               {producto.nombre}
             </h1>
 
@@ -178,7 +196,7 @@ export default async function ProductoPage({ params }: Props) {
               <ShareButton />
             </div>
 
-                       <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3">
               <PriceAlertButton
                 productId={producto.id}
                 precioActual={producto.precio}
@@ -264,7 +282,6 @@ export default async function ProductoPage({ params }: Props) {
           </div>
         )}
 
-        {/* Comentarios */}
         <Comments productoId={producto.id} />
       </main>
       <Footer />

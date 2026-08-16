@@ -11,24 +11,65 @@ async function getEbayToken() {
 
   const credentials = Buffer.from(`${appId}:${certId}`).toString("base64");
 
-  const res = await fetch(
-    "https://api.ebay.com/identity/v1/oauth2/token",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${credentials}`,
-      },
-      body: "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope",
-    }
-  );
+  const res = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials}`,
+    },
+    body: "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope",
+  });
 
   const data = await res.json();
   if (!res.ok) throw new Error(JSON.stringify(data));
   return data.access_token as string;
 }
 
-// Búsquedas → categoría en Oferthis
+function toLargeEbayUrl(url: string) {
+  return String(url).replace(/s-l\d+/gi, "s-l1600");
+}
+
+/** Obtiene todas las fotos del anuncio (principal + additionalImages) */
+async function getEbayItemImages(
+  token: string,
+  itemId: string
+): Promise<string[]> {
+  try {
+    const res = await fetch(
+      `https://api.ebay.com/buy/browse/v1/item/${encodeURIComponent(itemId)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const urls = new Set<string>();
+
+    if (data.image?.imageUrl) {
+      urls.add(toLargeEbayUrl(data.image.imageUrl));
+    }
+    if (Array.isArray(data.additionalImages)) {
+      for (const img of data.additionalImages) {
+        if (img?.imageUrl) urls.add(toLargeEbayUrl(img.imageUrl));
+      }
+    }
+    if (Array.isArray(data.thumbnailImages)) {
+      for (const img of data.thumbnailImages) {
+        if (img?.imageUrl) urls.add(toLargeEbayUrl(img.imageUrl));
+      }
+    }
+
+    return Array.from(urls);
+  } catch {
+    return [];
+  }
+}
+
 const BUSQUEDAS = [
   { q: "auriculares", categoria: "Tecnología" },
   { q: "portatil", categoria: "Tecnología" },
@@ -49,7 +90,9 @@ export async function GET() {
     const titulosVivos = new Set<string>();
 
     for (const busqueda of BUSQUEDAS) {
-      const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(busqueda.q)}&limit=5`;
+      const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
+        busqueda.q
+      )}&limit=5`;
 
       const searchRes = await fetch(searchUrl, {
         headers: {
@@ -69,14 +112,28 @@ export async function GET() {
         const nombre = item.title || "Sin título";
         titulosVivos.add(nombre);
 
-                 const precioValor = item.price?.value || "0";
+        const precioValor = item.price?.value || "0";
         const moneda = item.price?.currency || "EUR";
         const precio = `${precioValor}${moneda === "EUR" ? "€" : " " + moneda}`;
+
         const imagenRaw =
           item.image?.imageUrl ||
           item.thumbnailImages?.[0]?.imageUrl ||
           "https://picsum.photos/400/400";
-        const imagen = String(imagenRaw).replace(/s-l\d+/gi, "s-l1600");
+        let imagen = toLargeEbayUrl(imagenRaw);
+
+        // Varias fotos desde el detalle del ítem
+        let imagenes: string[] = [imagen];
+        const itemId = item.itemId || item.legacyItemId;
+        if (itemId) {
+          const todas = await getEbayItemImages(token, itemId);
+          if (todas.length > 0) {
+            imagenes = todas;
+            imagen = todas[0];
+          }
+        }
+        const imagenesJson = JSON.stringify(imagenes);
+
         const url = item.itemWebUrl || "https://www.ebay.es";
         const ahora = new Date().toISOString();
 
@@ -91,6 +148,7 @@ export async function GET() {
             UPDATE productos SET
               precio = ${precio},
               imagen = ${imagen},
+              imagenes = ${imagenesJson}::jsonb,
               url = ${url},
               categoria = ${busqueda.categoria},
               disponible = true,
@@ -102,7 +160,7 @@ export async function GET() {
           await sql`
             INSERT INTO productos (
               nombre, tienda, precio, antes, descuento, categoria,
-              imagen, url, disponible, ultima_actualizacion
+              imagen, imagenes, url, disponible, ultima_actualizacion
             ) VALUES (
               ${nombre},
               'eBay',
@@ -111,6 +169,7 @@ export async function GET() {
               '-0%',
               ${busqueda.categoria},
               ${imagen},
+              ${imagenesJson}::jsonb,
               ${url},
               true,
               ${"Sincronizado " + ahora}
@@ -121,7 +180,6 @@ export async function GET() {
       }
     }
 
-    // Marcar no disponibles los eBay que ya no salen en ninguna búsqueda
     const ebayProductos = await sql`
       SELECT id, nombre FROM productos
       WHERE tienda = 'eBay' AND disponible = true
@@ -132,7 +190,9 @@ export async function GET() {
         await sql`
           UPDATE productos SET
             disponible = false,
-            ultima_actualizacion = ${"Caducado auto " + new Date().toISOString()}
+            ultima_actualizacion = ${
+              "Caducado auto " + new Date().toISOString()
+            }
           WHERE id = ${p.id}
         `;
         marcadosNoDisponibles++;
@@ -141,7 +201,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      mensaje: "Sincronización eBay Production (ES) finalizada",
+      mensaje: "Sincronización eBay con galería de imágenes finalizada",
       busquedas: BUSQUEDAS.length,
       encontrados_en_ebay: encontradosTotal,
       insertados,
