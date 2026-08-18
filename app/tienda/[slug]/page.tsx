@@ -3,7 +3,7 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FavoriteButton from "../../components/FavoriteButton";
-import DiscountBadge from "@/components/DiscountBadge";
+import DiscountBadge from "../../components/DiscountBadge";
 import { sql } from "../../lib/db";
 
 type Props = {
