@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import FavoriteButton from "./FavoriteButton";
+import DiscountBadge from "./DiscountBadge";
 
 type Producto = {
   id: number;
@@ -24,7 +25,6 @@ type Props = {
 function ProductCard({ p }: { p: Producto }) {
   return (
     <Link
-      key={p.id}
       href={`/producto/${p.id}`}
       className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden"
     >
@@ -37,11 +37,7 @@ function ProductCard({ p }: { p: Producto }) {
           unoptimized
           className="w-full h-40 object-cover group-hover:scale-105 transition duration-300"
         />
-        {p.descuento && p.descuento !== "-0%" && p.descuento !== "0%" && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
-            {p.descuento}
-          </span>
-        )}
+        <DiscountBadge descuento={p.descuento || ""} />
         <div className="absolute top-2 right-2">
           <FavoriteButton productId={p.id} />
         </div>
@@ -96,7 +92,6 @@ export default function StoreSection({
     </div>
   );
 
-  // Modo plano: hasta 10 productos en 2 filas de 5 (sin subtítulos de categoría)
   if (plano) {
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
@@ -110,7 +105,6 @@ export default function StoreSection({
     );
   }
 
-  // Modo normal: agrupado por categoría
   const porCategoria: Record<string, Producto[]> = {};
   for (const p of productos) {
     const cat = p.categoria || "Otros";

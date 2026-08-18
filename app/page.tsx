@@ -29,9 +29,13 @@ export default async function Home() {
   );
 
   // Solo ofertas con descuento real, máximo 10 (2 filas × 5)
-  const deEbay = productos
+    const deEbay = productos
     .filter(
-      (p) => (p.tienda || "").toLowerCase() === "ebay" && esOferta(p)
+      (p) =>
+        (p.tienda || "").toLowerCase() === "ebay" &&
+        esOferta(p) &&
+        p.url &&
+        String(p.url).includes("/itm/")
     )
     .slice(0, 10);
 

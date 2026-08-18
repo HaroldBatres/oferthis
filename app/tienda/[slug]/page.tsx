@@ -3,6 +3,7 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FavoriteButton from "../../components/FavoriteButton";
+import DiscountBadge from "@/components/DiscountBadge";
 import { sql } from "../../lib/db";
 
 type Props = {
@@ -49,7 +50,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
   const slugLower = slug.toLowerCase();
   const nombreTienda = NOMBRES[slugLower] || slug;
 
-  // TODOS los productos de la tienda (disponibles)
   let productos = (await sql`
     SELECT * FROM productos
     WHERE (disponible = true OR disponible IS NULL)
@@ -57,7 +57,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     ORDER BY id DESC
   `) as any[];
 
-  // Buscador por nombre
   if (q && q.trim()) {
     const term = q.trim().toLowerCase();
     productos = productos.filter((p) =>
@@ -65,19 +64,16 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     );
   }
 
-  // Precio mínimo
   const minN = min ? parseFloat(min) : null;
   if (minN != null && !Number.isNaN(minN)) {
     productos = productos.filter((p) => parsePrecio(p.precio) >= minN);
   }
 
-  // Precio máximo
   const maxN = max ? parseFloat(max) : null;
   if (maxN != null && !Number.isNaN(maxN)) {
     productos = productos.filter((p) => parsePrecio(p.precio) <= maxN);
   }
 
-  // Solo ofertas (con descuento real)
   if (soloOfertas === "1") {
     productos = productos.filter((p) => {
       const d = String(p.descuento || "");
@@ -85,7 +81,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     });
   }
 
-  // Orden
   if (orden === "precio") {
     productos = [...productos].sort(
       (a, b) => parsePrecio(a.precio) - parsePrecio(b.precio)
@@ -98,7 +93,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     });
   }
 
-  // Agrupar por categoría
   const porCategoria: Record<string, any[]> = {};
   for (const p of productos) {
     const cat = p.categoria || "Otros";
@@ -128,7 +122,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
           {productos.length === 1 ? "producto" : "productos"}
         </p>
 
-        {/* Buscador y filtros */}
         <form
           method="get"
           action={base}
@@ -187,9 +180,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
         </form>
 
         {productos.length === 0 ? (
-          <p className="text-gray-500">
-            No hay productos con esos filtros.
-          </p>
+          <p className="text-gray-500">No hay productos con esos filtros.</p>
         ) : (
           <div className="space-y-12">
             {categorias.map((cat) => (
@@ -213,13 +204,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                           unoptimized
                           className="w-full h-40 object-cover group-hover:scale-105 transition duration-300"
                         />
-                        {p.descuento &&
-                          p.descuento !== "-0%" &&
-                          p.descuento !== "0%" && (
-                            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
-                              {p.descuento}
-                            </span>
-                          )}
+                        <DiscountBadge descuento={p.descuento} />
                         <div className="absolute top-2 right-2">
                           <FavoriteButton productId={p.id} />
                         </div>

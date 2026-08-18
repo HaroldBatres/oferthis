@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import MarkUnavailableButton from "../components/MarkUnavailableButton";
 import EditProductButton from "../components/EditProductButton";
 import SyncEbayButton from "../components/SyncEbayButton";
+import LimpiarOfertasButton from "../components/LimpiarOfertasButton";
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -20,30 +21,33 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-      const productos = await sql`SELECT * FROM productos` as any;
+  const productos = (await sql`SELECT * FROM productos ORDER BY id`) as any;
 
   return (
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-  <div>
-    <h1 className="text-3xl md:text-4xl font-bold">Panel de Administración</h1>
-    <p className="text-gray-500 mt-1">
-      Gestiona los productos de Oferthis
-    </p>
-  </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold">
+              Panel de Administración
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Gestiona los productos de Oferthis
+            </p>
+          </div>
 
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-    <SyncEbayButton />
-    <Link
-      href="/"
-      className="text-sm text-center text-gray-600 hover:text-orange-500 transition"
-    >
-      ← Volver a la web
-    </Link>
-  </div>
-</div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <SyncEbayButton />
+            <LimpiarOfertasButton />
+            <Link
+              href="/"
+              className="text-sm text-center text-gray-600 hover:text-orange-500 transition"
+            >
+              ← Volver a la web
+            </Link>
+          </div>
+        </div>
 
         <CreateProductForm />
 
@@ -101,30 +105,30 @@ export default async function AdminPage() {
                     )}
                   </td>
                   <td className="p-4">
-  <div className="flex flex-wrap items-center gap-3">
-    <Link
-      href={`/producto/${p.id}`}
-      className="text-orange-500 hover:underline text-sm"
-    >
-      Ver
-    </Link>
-    <EditProductButton producto={p} />
-    <DeleteProductButton
-      productId={p.id}
-      productName={p.nombre}
-    />
-    <MarkUnavailableButton
-      productId={p.id}
-      productName={p.nombre}
-    />
-    {p.disponible !== false && (
-      <CaducarProductButton
-        productId={p.id}
-        productName={p.nombre}
-      />
-    )}
-  </div>
-</td>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Link
+                        href={`/producto/${p.id}`}
+                        className="text-orange-500 hover:underline text-sm"
+                      >
+                        Ver
+                      </Link>
+                      <EditProductButton producto={p} />
+                      <DeleteProductButton
+                        productId={p.id}
+                        productName={p.nombre}
+                      />
+                      <MarkUnavailableButton
+                        productId={p.id}
+                        productName={p.nombre}
+                      />
+                      {p.disponible !== false && (
+                        <CaducarProductButton
+                          productId={p.id}
+                          productName={p.nombre}
+                        />
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -71,39 +71,31 @@ async function getEbayItemImages(
 }
 
 const BUSQUEDAS = [
-  // Tecnología
   { q: "portatil", categoria: "Tecnología" },
   { q: "smartphone", categoria: "Tecnología" },
   { q: "auriculares bluetooth", categoria: "Tecnología" },
   { q: "tablet", categoria: "Tecnología" },
   { q: "smartwatch", categoria: "Tecnología" },
   { q: "monitor", categoria: "Tecnología" },
-  // Hogar
   { q: "robot aspirador", categoria: "Hogar" },
   { q: "aspiradora", categoria: "Hogar" },
   { q: "humidificador", categoria: "Hogar" },
   { q: "ventilador", categoria: "Hogar" },
-  // Gaming
   { q: "playstation", categoria: "Gaming" },
   { q: "xbox", categoria: "Gaming" },
   { q: "raton gaming", categoria: "Gaming" },
   { q: "teclado mecanico", categoria: "Gaming" },
   { q: "mando consola", categoria: "Gaming" },
-  // Deporte
   { q: "zapatillas running", categoria: "Deporte" },
   { q: "zapatillas deporte", categoria: "Deporte" },
   { q: "bicicleta", categoria: "Deporte" },
-  // Cocina
   { q: "freidora aire", categoria: "Cocina" },
   { q: "cafetera", categoria: "Cocina" },
   { q: "batidora", categoria: "Cocina" },
-  // Moda
   { q: "zapatillas hombre", categoria: "Moda" },
   { q: "mochila", categoria: "Moda" },
-  // Belleza
   { q: "secador pelo", categoria: "Belleza" },
   { q: "plancha pelo", categoria: "Belleza" },
-  // Mascotas
   { q: "comedero perro", categoria: "Mascotas" },
   { q: "juguete gato", categoria: "Mascotas" },
 ];
@@ -114,6 +106,7 @@ export async function GET() {
 
     let insertados = 0;
     let actualizados = 0;
+    let omitidos = 0;
     let marcadosNoDisponibles = 0;
     let encontradosTotal = 0;
 
@@ -122,7 +115,7 @@ export async function GET() {
     for (const busqueda of BUSQUEDAS) {
       const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
         busqueda.q
-          )}&limit=20`;
+      )}&limit=20`;
 
       const searchRes = await fetch(searchUrl, {
         headers: {
@@ -140,13 +133,20 @@ export async function GET() {
 
       for (const item of items) {
         const nombre = item.title || "Sin título";
-        titulosVivos.add(nombre);
 
-                const precioValor = parseFloat(item.price?.value || "0");
+        // 1) URL real del anuncio (obligatoria)
+        const url = String(item.itemWebUrl || "");
+        if (!url || !url.includes("/itm/")) {
+          omitidos++;
+          continue;
+        }
+
+        const precioValor = parseFloat(item.price?.value || "0");
         const moneda = item.price?.currency || "EUR";
-        const precio = `${item.price?.value || "0"}${moneda === "EUR" ? "€" : " " + moneda}`;
+        const precio = `${item.price?.value || "0"}${
+          moneda === "EUR" ? "€" : " " + moneda
+        }`;
 
-        // Precio original / tachado si eBay lo envía
         const originalValor = parseFloat(
           item.marketingPrice?.originalPrice?.value ||
             item.marketingPrice?.price?.value ||
@@ -161,24 +161,30 @@ export async function GET() {
             ((originalValor - precioValor) / originalValor) * 100
           );
           if (pct >= 5) {
-            antes = `${item.marketingPrice?.originalPrice?.value || originalValor}${moneda === "EUR" ? "€" : " " + moneda}`;
+            antes = `${
+              item.marketingPrice?.originalPrice?.value || originalValor
+            }${moneda === "EUR" ? "€" : " " + moneda}`;
             descuento = `-${pct}%`;
           }
         }
 
-        // Solo ofertas reales (mín. 5% descuento)
+        // 2) Solo ofertas con descuento real (≥ 5 %)
         if (descuento === "-0%") {
+          omitidos++;
           continue;
         }
 
+        // 3) Imagen real de eBay (sin picsum)
         const imagenRaw =
-          item.image?.imageUrl ||
-          item.thumbnailImages?.[0]?.imageUrl ||
-          "https://picsum.photos/400/400";
-        let imagen = toLargeEbayUrl(imagenRaw);
+          item.image?.imageUrl || item.thumbnailImages?.[0]?.imageUrl || "";
+        if (!imagenRaw || String(imagenRaw).includes("picsum")) {
+          omitidos++;
+          continue;
+        }
 
-        // Varias fotos desde el detalle del ítem
+        let imagen = toLargeEbayUrl(imagenRaw);
         let imagenes: string[] = [imagen];
+
         const itemId = item.itemId || item.legacyItemId;
         if (itemId) {
           const todas = await getEbayItemImages(token, itemId);
@@ -189,7 +195,7 @@ export async function GET() {
         }
         const imagenesJson = JSON.stringify(imagenes);
 
-        const url = item.itemWebUrl || "https://www.ebay.es";
+        titulosVivos.add(nombre);
         const ahora = new Date().toISOString();
 
         const existentes = await sql`
@@ -202,6 +208,8 @@ export async function GET() {
           await sql`
             UPDATE productos SET
               precio = ${precio},
+              antes = ${antes},
+              descuento = ${descuento},
               imagen = ${imagen},
               imagenes = ${imagenesJson}::jsonb,
               url = ${url},
@@ -219,7 +227,7 @@ export async function GET() {
             ) VALUES (
               ${nombre},
               'eBay',
-                            ${precio},
+              ${precio},
               ${antes},
               ${descuento},
               ${busqueda.categoria},
@@ -235,32 +243,16 @@ export async function GET() {
       }
     }
 
-    const ebayProductos = await sql`
-      SELECT id, nombre FROM productos
-      WHERE tienda = 'eBay' AND disponible = true
-    `;
-
-    for (const p of ebayProductos as any[]) {
-      if (!titulosVivos.has(p.nombre)) {
-        await sql`
-          UPDATE productos SET
-            disponible = false,
-            ultima_actualizacion = ${
-              "Caducado auto " + new Date().toISOString()
-            }
-          WHERE id = ${p.id}
-        `;
-        marcadosNoDisponibles++;
-      }
-    }
+    // Caducar eBay activos que ya no salen en esta sincronización
 
     return NextResponse.json({
       ok: true,
-      mensaje: "Sincronización eBay con galería de imágenes finalizada",
+      mensaje: "Sincronización eBay finalizada (solo /itm/ + descuento real)",
       busquedas: BUSQUEDAS.length,
       encontrados_en_ebay: encontradosTotal,
       insertados,
       actualizados,
+      omitidos,
       marcados_no_disponibles: marcadosNoDisponibles,
     });
   } catch (err: any) {

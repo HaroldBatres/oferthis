@@ -20,21 +20,28 @@ function ProductCard({ producto }: { producto: any }) {
           <div className="absolute top-3 right-3 z-10">
             <FavoriteButton productId={producto.id} />
           </div>
+
           <img
             src={producto.imagen}
             alt={producto.nombre || "Producto"}
-                        className="w-full h-full object-contain"
+            className="w-full h-full object-contain"
             referrerPolicy="no-referrer"
           />
+
           {producto.descuento && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
-              {producto.descuento}
+            <span className="absolute top-3 left-3 z-10 flex flex-col items-center justify-center min-w-[72px] rounded-xl bg-gradient-to-br from-red-600 to-orange-500 px-3 py-2 text-white shadow-lg ring-2 ring-white/40">
+              <span className="text-[10px] font-semibold uppercase tracking-wide opacity-95">
+                Descuento
+              </span>
+              <span className="text-lg font-black leading-none mt-0.5">
+                {producto.descuento}
+              </span>
             </span>
           )}
         </div>
 
         <div className="p-4">
-                    <h4 className="font-bold text-sm sm:text-base line-clamp-2 min-h-[2.5rem] text-gray-900">
+          <h4 className="font-bold text-sm sm:text-base line-clamp-2 min-h-[2.5rem] text-gray-900">
             {producto.nombre}
           </h4>
           <div className="mt-3 flex items-center gap-2">
@@ -82,23 +89,22 @@ function ProductSection({
 export default function Products({ productos }: Props) {
   const lista = Array.isArray(productos) ? productos : [];
 
-  // Ofertas Flash: con etiqueta, o los 4 primeros
   const ofertasFlash = (
-    lista.filter((p) => p.etiqueta) .length > 0
+    lista.filter((p) => p.etiqueta).length > 0
       ? lista.filter((p) => p.etiqueta)
       : lista
   ).slice(0, 4);
 
-  // Mayor descuento
   const mayorDescuento = [...lista]
     .sort((a, b) => parseDescuento(b.descuento) - parseDescuento(a.descuento))
     .slice(0, 4);
 
-  // Más populares (valoración o opiniones)
   const masPopulares = [...lista]
     .sort((a, b) => {
-      const scoreA = (Number(a.valoracion) || 0) * 1000 + (Number(a.opiniones) || 0);
-      const scoreB = (Number(b.valoracion) || 0) * 1000 + (Number(b.opiniones) || 0);
+      const scoreA =
+        (Number(a.valoracion) || 0) * 1000 + (Number(a.opiniones) || 0);
+      const scoreB =
+        (Number(b.valoracion) || 0) * 1000 + (Number(b.opiniones) || 0);
       return scoreB - scoreA;
     })
     .slice(0, 4);
@@ -106,7 +112,11 @@ export default function Products({ productos }: Props) {
   return (
     <div className="pt-4">
       <ProductSection titulo="Ofertas Flash" icono="🔥" items={ofertasFlash} />
-      <ProductSection titulo="Mayor descuento" icono="📉" items={mayorDescuento} />
+      <ProductSection
+        titulo="Mayor descuento"
+        icono="📉"
+        items={mayorDescuento}
+      />
       <ProductSection titulo="Más populares" icono="⭐" items={masPopulares} />
     </div>
   );
