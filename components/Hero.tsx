@@ -7,7 +7,7 @@ export default function Hero() {
           <img
             src="/logo-oferthis.png"
             alt="Oferthis"
-            className="h-20 sm:h-28 md:h-32 w-auto object-contain"
+                      className="h-32 sm:h-44 md:h-52 w-auto object-contain"
           />
         </div>
 
