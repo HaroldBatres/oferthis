@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { sql } from "../../lib/db";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +13,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const user = await currentUser();
+    const email =
+      user?.primaryEmailAddress?.emailAddress ||
+      user?.emailAddresses?.[0]?.emailAddress ||
+      null;
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "No se pudo obtener tu email" },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const { productoId, precioObjetivo } = body;
 
@@ -23,15 +36,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  await sql`
-  INSERT INTO alertas (user_id, product_id, precio_objetivo)
-VALUES (${userId}, ${productoId}, ${precioObjetivo})
-  ON CONFLICT (product_id, user_id)
-DO UPDATE SET precio_objetivo = ${precioObjetivo}
-`;
+    await sql`
+      INSERT INTO alertas (user_id, product_id, precio_objetivo, email, notificada)
+      VALUES (${userId}, ${productoId}, ${precioObjetivo}, ${email}, false)
+    `;
 
     return NextResponse.json({ success: true });
-    } catch (error: any) {
+  } catch (error: any) {
     console.error(error);
     return NextResponse.json(
       { error: error?.message || "Error al crear la alerta" },
