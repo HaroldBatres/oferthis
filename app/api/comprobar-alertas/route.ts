@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       }
 
       const { error } = await resend.emails.send({
-        from: "Oferthis <onboarding@resend.dev>",
+      from: "Oferthis <alertas@oferthis.com>",
         to: email,
         subject: `¡Bajó de precio! ${alerta.nombre}`,
         html: `
