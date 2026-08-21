@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { sql } from "../../lib/db";
 
@@ -13,7 +13,26 @@ function parsePrecio(precio: string): number {
   );
 }
 
-export async function GET() {
+function autorizado(request: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+
+  // Vercel Cron: Authorization: Bearer CRON_SECRET
+  const authHeader = request.headers.get("authorization");
+  if (authHeader === `Bearer ${secret}`) return true;
+
+  // Prueba manual: ?secret=CRON_SECRET
+  const url = new URL(request.url);
+  if (url.searchParams.get("secret") === secret) return true;
+
+  return false;
+}
+
+export async function GET(request: NextRequest) {
+  if (!autorizado(request)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
     const alertas = (await sql`
       SELECT
