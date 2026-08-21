@@ -23,10 +23,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-        await sql`
-      INSERT INTO alertas (user_id, product_id, precio_objetivo)
-      VALUES (${userId}, ${productoId}, ${precioObjetivo})
-    `;
+  await sql`
+  INSERT INTO alertas (user_id, product_id, precio_objetivo)
+VALUES (${userId}, ${productoId}, ${precioObjetivo})
+  ON CONFLICT (product_id, user_id)
+DO UPDATE SET precio_objetivo = ${precioObjetivo}
+`;
 
     return NextResponse.json({ success: true });
     } catch (error: any) {
