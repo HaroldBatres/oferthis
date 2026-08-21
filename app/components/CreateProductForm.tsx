@@ -10,7 +10,8 @@ export default function CreateProductForm() {
   const [descuento, setDescuento] = useState("");
   const [categoria, setCategoria] = useState("Tecnología");
   const [imagen, setImagen] = useState("");
-  const [url, setUrl] = useState("");
+    const [url, setUrl] = useState("");
+  const [caducaEn, setCaducaEn] = useState("");
   const [cargando, setCargando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,7 +21,7 @@ export default function CreateProductForm() {
     const res = await fetch("/api/crear-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+            body: JSON.stringify({
         nombre,
         tienda,
         precio,
@@ -29,6 +30,7 @@ export default function CreateProductForm() {
         categoria,
         imagen,
         url,
+        caducaEn: caducaEn || null,
       }),
     });
 
@@ -125,25 +127,25 @@ export default function CreateProductForm() {
           </select>
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">URL de la imagen</label>
-          <input
-            type="text"
-            value={imagen}
-            onChange={(e) => setImagen(e.target.value)}
-            placeholder="https://picsum.photos/400/400?5"
-            className="w-full border rounded-xl p-3"
-            required
-          />
-        </div>
-
-        <div className="md:col-span-2">
+                <div className="md:col-span-2">
           <label className="block text-sm font-medium mb-1">URL del producto (opcional)</label>
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://amazon.es/..."
+            className="w-full border rounded-xl p-3"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Caduca el (opcional)
+          </label>
+          <input
+            type="date"
+            value={caducaEn}
+            onChange={(e) => setCaducaEn(e.target.value)}
             className="w-full border rounded-xl p-3"
           />
         </div>

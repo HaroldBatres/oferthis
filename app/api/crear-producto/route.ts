@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const {
+        const {
       nombre,
       tienda,
       precio,
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       categoria,
       imagen,
       url,
+      caducaEn,
     } = body;
 
     if (!nombre || !tienda || !precio || !antes || !descuento || !categoria || !imagen) {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     await sql`
       INSERT INTO productos (
-        nombre, tienda, precio, antes, descuento, categoria, imagen, url, disponible, ultima_actualizacion
+        nombre, tienda, precio, antes, descuento, categoria, imagen, url, disponible, ultima_actualizacion, caduca_en
       ) VALUES (
         ${nombre},
         ${tienda},
@@ -36,7 +37,8 @@ export async function POST(request: NextRequest) {
         ${imagen},
         ${url || null},
         true,
-        ${"Hace un momento"}
+        ${"Hace un momento"},
+        ${caducaEn || null}
       )
     `;
 
