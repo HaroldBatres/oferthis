@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import FavoriteButton from "./FavoriteButton";
 import DiscountBadge from "./DiscountBadge";
 
@@ -55,13 +56,15 @@ function ProductCard({ p }: { p: Producto }) {
   );
 }
 
-export default function StoreSection({
+export default async function StoreSection({
   tienda,
   productos,
   color = "orange",
   maxPorCategoria = 7,
   plano = false,
 }: Props) {
+  const t = await getTranslations("Home");
+
   if (!productos || productos.length === 0) return null;
 
   const franja =
@@ -77,17 +80,17 @@ export default function StoreSection({
     >
       <div>
         <p className="text-white/80 text-sm font-medium mb-0.5">
-          Selección de chollos
+          {t("dealsSelection")}
         </p>
         <h2 className="text-2xl md:text-3xl font-bold text-white">
-          Ofertas de {tienda}
+          {t("storeDeals", { tienda })}
         </h2>
       </div>
       <Link
         href={`/tienda/${tienda.toLowerCase()}`}
         className="text-sm font-semibold bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition"
       >
-        Ver todas →
+        {t("seeAll")} →
       </Link>
     </div>
   );

@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { sql } from "../lib/db";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -9,25 +10,26 @@ import FavoriteButton from "../components/FavoriteButton";
 
 export default async function FavoritosPage() {
   const { userId } = await auth();
+  const t = await getTranslations("Favorites");
+  const tCommon = await getTranslations("Common");
 
   if (!userId) {
     redirect("/");
   }
 
-  const favoritosIds = await sql`
+  const favoritosIds = (await sql`
     SELECT product_id FROM favoritos WHERE user_id = ${userId}
-  ` as any;
+  `) as any;
 
   const ids = favoritosIds.map((f: any) => f.product_id);
 
   let productos: any[] = [];
 
   if (ids.length > 0) {
-    // Obtenemos los productos que están en favoritos
-    productos = await sql`
+    productos = (await sql`
       SELECT * FROM productos 
       WHERE id = ANY(${ids}) AND disponible = true
-    ` as any;
+    `) as any;
   }
 
   return (
@@ -40,18 +42,18 @@ export default async function FavoritosPage() {
             className="inline-flex items-center gap-2 mb-4 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
           >
             <span className="text-lg">←</span>
-            Volver a las ofertas
+            {tCommon("backToOffers")}
           </Link>
 
-          <h1 className="text-3xl font-bold">Mis Favoritos</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-gray-500 mt-1">
             {productos.length}{" "}
-            {productos.length === 1 ? "producto" : "productos"}
+            {productos.length === 1 ? t("product") : t("products")}
           </p>
         </div>
 
         {productos.length === 0 ? (
-          <p className="text-gray-500">Aún no tienes productos en favoritos.</p>
+          <p className="text-gray-500">{t("empty")}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productos.map((item: any) => (

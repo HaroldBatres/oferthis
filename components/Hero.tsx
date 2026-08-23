@@ -1,44 +1,46 @@
-export default function Hero() {
+import { getTranslations } from "next-intl/server";
+
+export default async function Hero() {
+  const t = await getTranslations("Home");
+
   return (
-    <section className="border-b border-orange-300 bg-gradient-to-br from-orange-200 via-orange-100 to-orange-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 text-center">
-        {/* Logo Oferthis */}
-        <div className="flex justify-center mb-6 sm:mb-8">
+    <section className="border-b border-orange-100 bg-gradient-to-b from-orange-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 text-center">
+        <div className="flex justify-center mb-4">
           <img
             src="/logo-oferthis.png"
             alt="Oferthis"
-                      className="h-32 sm:h-44 md:h-52 w-auto object-contain"
+            className="h-20 sm:h-24 md:h-28 w-auto object-contain"
           />
         </div>
 
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-gray-900">
-          🔥 Las mejores ofertas
+        <h2 className="text-2xl sm:text-4xl md:text-5xl font-black leading-tight text-gray-900">
+          {t("heroTitle")}
         </h2>
 
-        <p className="text-base sm:text-lg text-gray-500 mt-4 max-w-2xl mx-auto">
-          Descuentos de Amazon, eBay, AliExpress y más, en un solo lugar.
+        <p className="text-sm sm:text-base text-gray-500 mt-3 max-w-2xl mx-auto">
+          {t("heroSubtitle")}
         </p>
 
-        {/* Buscador */}
         <form
           action="/buscar"
           method="get"
-          className="mt-8 sm:mt-10 max-w-2xl mx-auto w-full px-1"
+          className="mt-6 max-w-2xl mx-auto w-full px-1"
         >
-          <div className="flex items-center gap-2 bg-white border-2 border-orange-300 rounded-2xl shadow-sm focus-within:border-orange-500 transition p-1.5 sm:p-2 w-full max-w-full">
+          <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-2xl shadow-sm focus-within:border-orange-500 transition p-1.5 sm:p-2 w-full max-w-full">
             <input
               type="search"
               name="q"
-              placeholder="Buscar ofertas..."
-              className="flex-1 min-w-0 px-3 sm:px-4 py-3 sm:py-4 text-base sm:text-lg outline-none rounded-xl"
+              placeholder={t("searchPlaceholder")}
+              className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-base outline-none rounded-xl"
               style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
               required
             />
             <button
               type="submit"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl transition shrink-0 text-sm sm:text-base"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl transition shrink-0 text-sm sm:text-base"
             >
-              Buscar
+              {t("searchButton")}
             </button>
           </div>
         </form>

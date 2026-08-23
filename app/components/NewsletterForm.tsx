@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function NewsletterForm() {
+  const t = useTranslations("Newsletter");
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,10 +21,10 @@ export default function NewsletterForm() {
     });
 
     if (res.ok) {
-      setMensaje("¡Gracias! Te has suscrito correctamente.");
+      setMensaje(t("success"));
       setEmail("");
     } else {
-      setMensaje("Error al suscribirse. Inténtalo de nuevo.");
+      setMensaje(t("error"));
     }
 
     setLoading(false);
@@ -31,18 +33,16 @@ export default function NewsletterForm() {
   return (
     <div className="bg-orange-50 rounded-2xl p-8 border border-orange-100">
       <h3 className="text-2xl font-bold mb-2 text-gray-900">
-        📬 Recibe las mejores ofertas
+        📬 {t("title")}
       </h3>
-      <p className="text-gray-600 mb-6">
-        Suscríbete y te enviaremos las mejores chollos cada semana.
-      </p>
+      <p className="text-gray-600 mb-6">{t("subtitle")}</p>
 
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Tu email"
+          placeholder={t("emailPlaceholder")}
           required
           className="flex-1 border rounded-xl px-4 py-3 text-gray-900"
           style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
@@ -52,7 +52,7 @@ export default function NewsletterForm() {
           disabled={loading}
           className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
-          {loading ? "Enviando..." : "Suscribirme"}
+          {loading ? t("sending") : t("submit")}
         </button>
       </form>
 

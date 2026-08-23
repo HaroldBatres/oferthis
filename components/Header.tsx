@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const { isSignedIn } = useAuth();
+  const t = useTranslations("Header");
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -17,17 +20,19 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageSwitcher />
+
           <Link
             href="/favoritos"
             className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold transition text-xs sm:text-sm"
           >
-            ❤️ <span className="hidden sm:inline">Favoritos</span>
+            ❤️ <span className="hidden sm:inline">{t("favorites")}</span>
           </Link>
 
           {!isSignedIn ? (
             <SignInButton mode="modal">
               <button className="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded-lg font-bold transition text-xs sm:text-sm">
-                Entrar
+                {t("login")}
               </button>
             </SignInButton>
           ) : (
@@ -39,31 +44,31 @@ export default function Header() {
       <div className="hidden md:block border-t border-gray-100">
         <nav className="max-w-7xl mx-auto flex items-center gap-6 px-6 py-2 font-medium text-sm text-gray-800">
           <Link href="/" className="hover:text-orange-500 transition">
-            Inicio
+            {t("home")}
           </Link>
           <Link
             href="/categoria/tecnologia"
             className="hover:text-orange-500 transition"
           >
-            Tecnología
+            {t("technology")}
           </Link>
           <Link
             href="/categoria/hogar"
             className="hover:text-orange-500 transition"
           >
-            Hogar
+            {t("homeCategory")}
           </Link>
           <Link
             href="/categoria/gaming"
             className="hover:text-orange-500 transition"
           >
-            Gaming
+            {t("gaming")}
           </Link>
           <Link
             href="/categoria/deporte"
             className="hover:text-orange-500 transition"
           >
-            Deporte
+            {t("sport")}
           </Link>
         </nav>
       </div>

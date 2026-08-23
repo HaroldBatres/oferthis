@@ -1,21 +1,24 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 const categorias = [
-  { nombre: "Tecnología", slug: "tecnologia", icono: "💻" },
-  { nombre: "Hogar", slug: "hogar", icono: "🏠" },
-  { nombre: "Gaming", slug: "gaming", icono: "🎮" },
-  { nombre: "Deporte", slug: "deporte", icono: "⚽" },
-  { nombre: "Cocina", slug: "cocina", icono: "🍳" },
-  { nombre: "Moda", slug: "moda", icono: "👕" },
-  { nombre: "Belleza", slug: "belleza", icono: "💄" },
-  { nombre: "Mascotas", slug: "mascotas", icono: "🐾" },
-];
+  { key: "cat_tecnologia", slug: "tecnologia", icono: "💻" },
+  { key: "cat_hogar", slug: "hogar", icono: "🏠" },
+  { key: "cat_gaming", slug: "gaming", icono: "🎮" },
+  { key: "cat_deporte", slug: "deporte", icono: "⚽" },
+  { key: "cat_cocina", slug: "cocina", icono: "🍳" },
+  { key: "cat_moda", slug: "moda", icono: "👕" },
+  { key: "cat_belleza", slug: "belleza", icono: "💄" },
+  { key: "cat_mascotas", slug: "mascotas", icono: "🐾" },
+] as const;
 
-export default function Categories() {
+export default async function Categories() {
+  const t = await getTranslations("Home");
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16">
       <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 md:mb-10 text-gray-900">
-        Categorías
+        {t("categories")}
       </h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
@@ -27,7 +30,7 @@ export default function Categories() {
           >
             <div className="text-3xl sm:text-4xl mb-2">{categoria.icono}</div>
             <span className="text-xs sm:text-sm font-semibold text-gray-800">
-              {categoria.nombre}
+              {t(categoria.key)}
             </span>
           </Link>
         ))}

@@ -1,0 +1,73 @@
+{
+  "Header": {
+    "home": "Inicio",
+    "technology": "Tecnologia",
+    "homeCategory": "Hogar",
+    "gaming": "Gaming",
+    "sport": "Deporte",
+    "favorites": "Favoritos",
+    "login": "Entrar"
+  },
+  "Common": {
+    "backToOffers": "Volver a las ofertas",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "Home": {
+    "categories": "Categorias",
+    "searchPlaceholder": "Buscar ofertas...",
+    "searchButton": "Buscar",
+    "ebayDeals": "Ofertas de eBay",
+    "seeAll": "Ver todas",
+    "dealsSelection": "Seleccion de chollos",
+    "featuredOffers": "Ofertas destacadas",
+    "storeDeals": "Ofertas de {tienda}",
+    "heroTitle": "Las mejores ofertas",
+    "heroSubtitle": "Descuentos de Amazon, eBay, AliExpress y mas, en un solo lugar.",
+    "cat_tecnologia": "Tecnologia",
+    "cat_hogar": "Hogar",
+    "cat_gaming": "Gaming",
+    "cat_deporte": "Deporte",
+    "cat_cocina": "Cocina",
+    "cat_moda": "Moda",
+    "cat_belleza": "Belleza",
+    "cat_mascotas": "Mascotas"
+  },
+  "Favorites": {
+    "title": "Mis Favoritos",
+    "back": "Volver a las ofertas",
+    "product": "producto",
+    "products": "productos",
+    "empty": "Aun no tienes productos en favoritos."
+  },
+  "Newsletter": {
+    "title": "Recibe las mejores ofertas",
+    "subtitle": "Suscribete y te enviaremos los mejores chollos cada semana.",
+    "emailPlaceholder": "Tu email",
+    "submit": "Suscribirme",
+    "sending": "Enviando...",
+    "success": "Gracias! Te has suscrito correctamente.",
+    "error": "Error al suscribirse. Intentalo de nuevo."
+  },
+  "Footer": {
+    "tagline": "Encuentra las mejores ofertas de Internet.",
+    "copyright": "(c) 2026 Oferthis"
+  },
+  "Store": {
+    "offersOf": "Ofertas de",
+    "product": "producto",
+    "products": "productos",
+    "searchProduct": "Buscar producto...",
+    "priceMin": "Precio min",
+    "priceMax": "Precio max",
+    "orderRecent": "Orden: recientes",
+    "orderPrice": "Mas barato",
+    "orderDiscount": "Mayor descuento",
+    "onlyDeals": "Solo ofertas",
+    "filter": "Filtrar",
+    "empty": "No hay productos con esos filtros.",
+    "metaTitle": "Ofertas de {nombre} | Oferthis",
+    "metaDescription": "Todas las ofertas de {nombre} en Oferthis."
+  }
+}

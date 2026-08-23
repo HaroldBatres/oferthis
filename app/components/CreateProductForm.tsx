@@ -10,7 +10,7 @@ export default function CreateProductForm() {
   const [descuento, setDescuento] = useState("");
   const [categoria, setCategoria] = useState("Tecnología");
   const [imagen, setImagen] = useState("");
-    const [url, setUrl] = useState("");
+  const [url, setUrl] = useState("");
   const [caducaEn, setCaducaEn] = useState("");
   const [cargando, setCargando] = useState(false);
 
@@ -21,7 +21,7 @@ export default function CreateProductForm() {
     const res = await fetch("/api/crear-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+      body: JSON.stringify({
         nombre,
         tienda,
         precio,
@@ -46,7 +46,10 @@ export default function CreateProductForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border shadow-sm p-6 mb-10">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-2xl border shadow-sm p-6 mb-10"
+    >
       <h2 className="text-xl font-bold mb-6">Añadir nuevo producto</h2>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -127,8 +130,22 @@ export default function CreateProductForm() {
           </select>
         </div>
 
-                <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">URL del producto (opcional)</label>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium mb-1">URL de la imagen</label>
+          <input
+            type="text"
+            value={imagen}
+            onChange={(e) => setImagen(e.target.value)}
+            placeholder="https://picsum.photos/400/400?5"
+            className="w-full border rounded-xl p-3"
+            required
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium mb-1">
+            URL del producto (opcional)
+          </label>
           <input
             type="text"
             value={url}

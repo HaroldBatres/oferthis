@@ -1,0 +1,73 @@
+{
+  "Header": {
+    "home": "Home",
+    "technology": "Technology",
+    "homeCategory": "Home",
+    "gaming": "Gaming",
+    "sport": "Sports",
+    "favorites": "Favorites",
+    "login": "Sign in"
+  },
+  "Common": {
+    "backToOffers": "Back to deals",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "Home": {
+    "categories": "Categories",
+    "searchPlaceholder": "Search deals...",
+    "searchButton": "Search",
+    "ebayDeals": "eBay deals",
+    "seeAll": "See all",
+    "dealsSelection": "Top picks",
+    "featuredOffers": "Featured deals",
+    "storeDeals": "{tienda} deals",
+    "heroTitle": "Best deals",
+    "heroSubtitle": "Discounts from Amazon, eBay, AliExpress and more, in one place.",
+    "cat_tecnologia": "Technology",
+    "cat_hogar": "Home",
+    "cat_gaming": "Gaming",
+    "cat_deporte": "Sports",
+    "cat_cocina": "Kitchen",
+    "cat_moda": "Fashion",
+    "cat_belleza": "Beauty",
+    "cat_mascotas": "Pets"
+  },
+  "Favorites": {
+    "title": "My Favorites",
+    "back": "Back to deals",
+    "product": "product",
+    "products": "products",
+    "empty": "You do not have any favorites yet."
+  },
+  "Newsletter": {
+    "title": "Get the best deals",
+    "subtitle": "Subscribe and we will send you the best deals every week.",
+    "emailPlaceholder": "Your email",
+    "submit": "Subscribe",
+    "sending": "Sending...",
+    "success": "Thanks! You are subscribed.",
+    "error": "Could not subscribe. Please try again."
+  },
+  "Footer": {
+    "tagline": "Find the best deals on the Internet.",
+    "copyright": "(c) 2026 Oferthis"
+  },
+  "Store": {
+    "offersOf": "Deals from",
+    "product": "product",
+    "products": "products",
+    "searchProduct": "Search product...",
+    "priceMin": "Min price",
+    "priceMax": "Max price",
+    "orderRecent": "Sort: newest",
+    "orderPrice": "Lowest price",
+    "orderDiscount": "Biggest discount",
+    "onlyDeals": "Deals only",
+    "filter": "Filter",
+    "empty": "No products match these filters.",
+    "metaTitle": "{nombre} deals | Oferthis",
+    "metaDescription": "All {nombre} deals on Oferthis."
+  }
+}
