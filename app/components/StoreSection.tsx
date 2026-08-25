@@ -44,12 +44,12 @@ function ProductCard({ p }: { p: Producto }) {
         </div>
       </div>
       <div className="p-3">
-        <h4 className="text-xs font-semibold line-clamp-2 group-hover:text-orange-500">
+        <h4 className="text-xs font-semibold line-clamp-2 text-gray-900 group-hover:text-orange-500">
           {p.nombre}
         </h4>
         <p className="text-orange-500 font-bold text-sm mt-1">{p.precio}</p>
         {p.antes && p.antes !== p.precio && (
-          <p className="text-gray-400 text-xs line-through">{p.antes}</p>
+          <p className="text-gray-500 text-xs line-through">{p.antes}</p>
         )}
       </div>
     </Link>
