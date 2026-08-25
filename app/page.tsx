@@ -24,12 +24,14 @@ export default async function Home() {
     ORDER BY id DESC
   `) as any[];
 
-  const deAmazon = productos.filter(
-    (p) => (p.tienda || "").toLowerCase() === "amazon"
-  );
+  const deAmazon = productos
+    .filter(
+      (p) =>
+        (p.tienda || "").toLowerCase() === "amazon" && esOferta(p)
+    )
+    .slice(0, 15);
 
-  // Solo ofertas con descuento real, máximo 10 (2 filas × 5)
-    const deEbay = productos
+  const deEbay = productos
     .filter(
       (p) =>
         (p.tienda || "").toLowerCase() === "ebay" &&
@@ -37,7 +39,7 @@ export default async function Home() {
         p.url &&
         String(p.url).includes("/itm/")
     )
-    .slice(0, 10);
+    .slice(0, 15);
 
   const deAli = productos
     .filter(
@@ -46,8 +48,7 @@ export default async function Home() {
           (p.tienda || "").toLowerCase() === "ali express") &&
         esOferta(p)
     )
-    .slice(0, 10);
-
+    .slice(0, 15);
   return (
     <main>
       <Header />
