@@ -44,7 +44,7 @@ function ProductCard({ p }: { p: Producto }) {
         </div>
       </div>
       <div className="p-3">
-        <h4 className="text-xs font-semibold line-clamp-2 text-gray-900 group-hover:text-orange-500">
+            <h4 className="text-xs font-semibold line-clamp-2 text-black group-hover:text-orange-500">
           {p.nombre}
         </h4>
         <p className="text-orange-500 font-bold text-sm mt-1">{p.precio}</p>
