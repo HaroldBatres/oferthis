@@ -48,8 +48,10 @@ export default async function ProductoPage({ params }: Props) {
       <>
         <Header />
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-          <h1 className="text-4xl font-bold">Producto no encontrado</h1>
-          <p className="mt-4">ID buscado: {id}</p>
+          <h1 className="text-4xl font-bold text-gray-900">
+            Producto no encontrado
+          </h1>
+          <p className="mt-4 text-gray-600">ID buscado: {id}</p>
         </main>
         <Footer />
       </>
@@ -57,13 +59,17 @@ export default async function ProductoPage({ params }: Props) {
   }
 
   const precioActual = parseFloat(
-    producto.precio.replace("€", "").replace(",", ".")
+    String(producto.precio).replace("€", "").replace(",", ".")
   );
   const precioAnterior = parseFloat(
-    producto.antes.replace("€", "").replace(",", ".")
+    String(producto.antes || "0").replace("€", "").replace(",", ".")
   );
-  const ahorro = precioAnterior - precioActual;
-  const porcentajeAhorro = Math.round((ahorro / precioAnterior) * 100);
+  const ahorro =
+    !isNaN(precioAnterior) && !isNaN(precioActual)
+      ? precioAnterior - precioActual
+      : 0;
+  const porcentajeAhorro =
+    precioAnterior > 0 ? Math.round((ahorro / precioAnterior) * 100) : 0;
 
   const relacionados = (await sql`
     SELECT * FROM productos
@@ -76,7 +82,7 @@ export default async function ProductoPage({ params }: Props) {
   return (
     <>
       <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white">
         <Link
           href="/"
           className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
@@ -86,8 +92,8 @@ export default async function ProductoPage({ params }: Props) {
         </Link>
 
         <div className="grid md:grid-cols-[1.6fr_1fr] gap-8 md:gap-12 items-start">
-                  {/* Imagen izquierda */}
-                    <ProductImageGallery
+          {/* Imagen izquierda */}
+          <ProductImageGallery
             imagenes={(() => {
               let lista: string[] = [];
               if (producto.imagenes) {
@@ -112,9 +118,11 @@ export default async function ProductoPage({ params }: Props) {
 
           {/* Información derecha */}
           <div>
-            <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-semibold">
-              {producto.descuento}
-            </span>
+            {producto.descuento && (
+              <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-semibold">
+                {producto.descuento}
+              </span>
+            )}
 
             {producto.etiqueta && (
               <p className="mt-4 inline-block bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-sm">
@@ -122,22 +130,23 @@ export default async function ProductoPage({ params }: Props) {
               </p>
             )}
 
-            <p className="mt-6 text-gray-500 text-sm">
+            <p className="mt-4 text-sm text-gray-500">
               Referencia #{producto.id}
             </p>
 
-            <p className="text-sm text-gray-300">
-  Referencia # {producto.id}
-</p>
+            {/* Título del producto — visible en móvil y escritorio */}
+            <h1 className="mt-3 text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
+              {producto.nombre}
+            </h1>
 
             {producto.valoracion && (
-              <p className="mt-4 text-yellow-500 text-lg font-semibold">
+              <p className="mt-4 text-yellow-600 text-lg font-semibold">
                 ⭐ {producto.valoracion} ({producto.opiniones} opiniones)
               </p>
             )}
 
             <div className="mt-5 space-y-2.5">
-              <p className="text-lg">
+              <p className="text-lg text-gray-800">
                 Vendido por{" "}
                 <span className="font-bold text-orange-500">
                   {producto.tienda}
@@ -171,14 +180,18 @@ export default async function ProductoPage({ params }: Props) {
                 <span className="text-4xl font-bold text-orange-500">
                   {producto.precio}
                 </span>
-                <span className="text-lg text-gray-400 line-through mb-1">
-                  {producto.antes}
-                </span>
+                {producto.antes && (
+                  <span className="text-lg text-gray-400 line-through mb-1">
+                    {producto.antes}
+                  </span>
+                )}
               </div>
-              <p className="mt-2 text-green-600 font-semibold">
-                Ahorras {ahorro.toFixed(2).replace(".", ",")} € (
-                {porcentajeAhorro}%)
-              </p>
+              {ahorro > 0 && (
+                <p className="mt-2 text-green-600 font-semibold">
+                  Ahorras {ahorro.toFixed(2).replace(".", ",")} € (
+                  {porcentajeAhorro}%)
+                </p>
+              )}
             </div>
 
             {/* Botones */}
@@ -208,7 +221,7 @@ export default async function ProductoPage({ params }: Props) {
             {producto.historial_precios &&
               producto.historial_precios.length > 0 && (
                 <div className="mt-10">
-                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <span>📈</span> Historial de precios
                   </h2>
                   <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -253,7 +266,9 @@ export default async function ProductoPage({ params }: Props) {
         {/* Productos relacionados */}
         {relacionados.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Productos relacionados
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
               {relacionados.map((item: any) => (
                 <Link
@@ -269,7 +284,7 @@ export default async function ProductoPage({ params }: Props) {
                     className="w-full h-44 object-cover"
                   />
                   <div className="p-4">
-                    <h3 className="font-semibold text-sm line-clamp-2">
+                    <h3 className="font-semibold text-sm line-clamp-2 text-gray-900">
                       {item.nombre}
                     </h3>
                     <p className="text-orange-500 font-bold mt-2">
