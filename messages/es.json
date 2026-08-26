@@ -1,7 +1,7 @@
 {
   "Header": {
     "home": "Inicio",
-    "technology": "Tecnologia",
+    "technology": "Tecnología",
     "homeCategory": "Hogar",
     "gaming": "Gaming",
     "sport": "Deporte",
@@ -15,17 +15,17 @@
     "cancel": "Cancelar"
   },
   "Home": {
-    "categories": "Categorias",
+    "categories": "Categorías",
     "searchPlaceholder": "Buscar ofertas...",
     "searchButton": "Buscar",
     "ebayDeals": "Ofertas de eBay",
     "seeAll": "Ver todas",
-    "dealsSelection": "Seleccion de chollos",
+    "dealsSelection": "Selección de chollos",
     "featuredOffers": "Ofertas destacadas",
     "storeDeals": "Ofertas de {tienda}",
     "heroTitle": "Las mejores ofertas",
-    "heroSubtitle": "Descuentos de Amazon, eBay, AliExpress y mas, en un solo lugar.",
-    "cat_tecnologia": "Tecnologia",
+    "heroSubtitle": "Descuentos de Amazon, eBay, AliExpress y más, en un solo lugar.",
+    "cat_tecnologia": "Tecnología",
     "cat_hogar": "Hogar",
     "cat_gaming": "Gaming",
     "cat_deporte": "Deporte",
@@ -39,30 +39,48 @@
     "back": "Volver a las ofertas",
     "product": "producto",
     "products": "productos",
-    "empty": "Aun no tienes productos en favoritos."
+    "empty": "Aún no tienes productos en favoritos."
   },
   "Newsletter": {
     "title": "Recibe las mejores ofertas",
-    "subtitle": "Suscribete y te enviaremos los mejores chollos cada semana.",
+    "subtitle": "Suscríbete y te enviaremos los mejores chollos cada semana.",
     "emailPlaceholder": "Tu email",
     "submit": "Suscribirme",
     "sending": "Enviando...",
-    "success": "Gracias! Te has suscrito correctamente.",
-    "error": "Error al suscribirse. Intentalo de nuevo."
+    "success": "¡Gracias! Te has suscrito correctamente.",
+    "error": "Error al suscribirse. Inténtalo de nuevo."
   },
   "Footer": {
-    "tagline": "Encuentra las mejores ofertas de Internet.",
-    "copyright": "(c) 2026 Oferthis"
+    "tagline": "Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN en un solo lugar.",
+    "categories": "Categorías",
+    "links": "Enlaces",
+    "home": "Inicio",
+    "favorites": "Favoritos",
+    "rights": "Todos los derechos reservados."
+  },
+  "Product": {
+    "back": "Volver a las ofertas",
+    "features": "Características del artículo",
+    "noFeatures": "Sin características.",
+    "description": "Descripción del artículo del vendedor",
+    "buyOn": "Comprar en {tienda}",
+    "related": "Productos relacionados",
+    "notFound": "Producto no encontrado",
+    "ref": "Referencia #{id}",
+    "soldBy": "Vendido por",
+    "available": "Disponible",
+    "soldOut": "Agotado",
+    "youSave": "Ahorras {amount} € ({percent}%)"
   },
   "Store": {
     "offersOf": "Ofertas de",
     "product": "producto",
     "products": "productos",
     "searchProduct": "Buscar producto...",
-    "priceMin": "Precio min",
-    "priceMax": "Precio max",
+    "priceMin": "Precio mín",
+    "priceMax": "Precio máx",
     "orderRecent": "Orden: recientes",
-    "orderPrice": "Mas barato",
+    "orderPrice": "Más barato",
     "orderDiscount": "Mayor descuento",
     "onlyDeals": "Solo ofertas",
     "filter": "Filtrar",

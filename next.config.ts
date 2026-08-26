@@ -12,8 +12,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "i.ebayimg.com" },
-      { protocol: "https", hostname: "**.amazon.com" },
-      { protocol: "https", hostname: "**.amazonaws.com" },
+      { protocol: "https", hostname: "**.ebayimg.com" },
+      { protocol: "https", hostname: "m.media-amazon.com" },
+      { protocol: "https", hostname: "images-na.ssl-images-amazon.com" },
+      { protocol: "https", hostname: "ae01.alicdn.com" },
+      { protocol: "https", hostname: "ae02.alicdn.com" },
+      { protocol: "https", hostname: "ae03.alicdn.com" },
+      { protocol: "https", hostname: "ae04.alicdn.com" },
+      { protocol: "https", hostname: "**.alicdn.com" },
     ],
   },
 };

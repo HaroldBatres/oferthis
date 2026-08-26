@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,36 +16,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://oferthis.com"),
   title: {
     default:
       "Oferthis - Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN",
     template: "%s | Oferthis",
   },
   description:
-    "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más. Ahorra dinero todos los días con Oferthis.",
+    "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más.",
   openGraph: {
     title: "Oferthis - Las mejores ofertas",
     description:
       "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
-    url: "https://www.oferthis.com",
+    url: "https://oferthis.com",
     siteName: "Oferthis",
     locale: "es_ES",
     type: "website",
-    images: [
-      {
-        url: "https://www.oferthis.com/og-default.png",
-        width: 1200,
-        height: 630,
-        alt: "Oferthis - Las mejores ofertas",
-      },
-    ],
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Oferthis - Las mejores ofertas",
-    description:
-      "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
-  },
+  robots: { index: true, follow: true },
 };
 
 export default async function RootLayout({
@@ -67,7 +54,6 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             {children}
           </NextIntlClientProvider>
-          <Analytics />
         </body>
       </html>
     </ClerkProvider>

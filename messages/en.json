@@ -51,8 +51,26 @@
     "error": "Could not subscribe. Please try again."
   },
   "Footer": {
-    "tagline": "Find the best deals on the Internet.",
-    "copyright": "(c) 2026 Oferthis"
+    "tagline": "The best deals from Amazon, eBay, AliExpress and SHEIN in one place.",
+    "categories": "Categories",
+    "links": "Links",
+    "home": "Home",
+    "favorites": "Favorites",
+    "rights": "All rights reserved."
+  },
+  "Product": {
+    "back": "Back to deals",
+    "features": "Item specifics",
+    "noFeatures": "No features listed.",
+    "description": "Seller item description",
+    "buyOn": "Buy on {tienda}",
+    "related": "Related products",
+    "notFound": "Product not found",
+    "ref": "Reference {id}",
+    "soldBy": "Sold by",
+    "available": "Available",
+    "soldOut": "Sold out",
+    "youSave": "You save {amount} EUR ({percent}%)"
   },
   "Store": {
     "offersOf": "Deals from",

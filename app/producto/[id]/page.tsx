@@ -8,6 +8,7 @@ import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
 import ProductImageGallery from "../../components/ProductImageGallery";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -32,15 +33,14 @@ export default async function ProductoPage({ params }: Props) {
     SELECT * FROM productos WHERE id = ${Number(id)}
   `) as any;
   const producto = resultado[0];
+  const t = await getTranslations("Product");
 
   if (!producto) {
     return (
       <>
         <Header />
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Producto no encontrado
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("notFound")}</h1>
         </main>
         <Footer />
       </>
@@ -92,7 +92,10 @@ export default async function ProductoPage({ params }: Props) {
   }
 
   const lineasDescripcion = descripcion
-    ? descripcion.split(/\n+/).map((l) => l.trim()).filter(Boolean)
+    ? descripcion
+        .split(/\n+/)
+        .map((l) => l.trim())
+        .filter(Boolean)
     : [];
 
   return (
@@ -104,7 +107,7 @@ export default async function ProductoPage({ params }: Props) {
           className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
         >
           <span className="text-lg">←</span>
-          Volver a las ofertas
+          {t("back")}
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr_1fr] gap-6 lg:gap-8 items-start">
@@ -112,14 +115,14 @@ export default async function ProductoPage({ params }: Props) {
             {caracteristicas ? (
               <section>
                 <h2 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
-                  Características del artículo
+                  {t("features")}
                 </h2>
                 <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                   {caracteristicas}
                 </div>
               </section>
             ) : (
-              <p className="text-sm text-gray-400">Sin características.</p>
+              <p className="text-sm text-gray-400">{t("noFeatures")}</p>
             )}
           </div>
 
@@ -135,7 +138,7 @@ export default async function ProductoPage({ params }: Props) {
             ) : null}
 
             <p className="mt-3 text-sm text-gray-500">
-              Referencia #{producto.id}
+              {t("ref", { id: producto.id })}
             </p>
 
             <h1 className="mt-2 text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug">
@@ -143,7 +146,7 @@ export default async function ProductoPage({ params }: Props) {
             </h1>
 
             <p className="mt-4 text-lg text-gray-800">
-              Vendido por{" "}
+              {t("soldBy")}{" "}
               <span className="font-bold text-orange-500">{producto.tienda}</span>
             </p>
 
@@ -154,9 +157,13 @@ export default async function ProductoPage({ params }: Props) {
             ) : null}
 
             {producto.disponible !== false ? (
-              <p className="mt-3 font-semibold text-green-600">✅ Disponible</p>
+              <p className="mt-3 font-semibold text-green-600">
+                ✅ {t("available")}
+              </p>
             ) : (
-              <p className="mt-3 font-semibold text-red-600">❌ Agotado</p>
+              <p className="mt-3 font-semibold text-red-600">
+                ❌ {t("soldOut")}
+              </p>
             )}
 
             <div className="mt-6 p-5 bg-orange-50 rounded-2xl border border-orange-100">
@@ -172,8 +179,10 @@ export default async function ProductoPage({ params }: Props) {
               </div>
               {ahorro > 0 ? (
                 <p className="mt-2 text-green-600 font-semibold">
-                  Ahorras {ahorro.toFixed(2).replace(".", ",")} € (
-                  {porcentajeAhorro}%)
+                  {t("youSave", {
+                    amount: ahorro.toFixed(2).replace(".", ","),
+                    percent: porcentajeAhorro,
+                  })}
                 </p>
               ) : null}
             </div>
@@ -186,7 +195,7 @@ export default async function ProductoPage({ params }: Props) {
                   rel="noopener noreferrer"
                   className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-white px-6 py-3.5 rounded-xl text-lg font-bold transition shadow-sm"
                 >
-                  Comprar en {producto.tienda}
+                  {t("buyOn", { tienda: producto.tienda })}
                 </a>
               ) : null}
               <ShareButton />
@@ -206,28 +215,28 @@ export default async function ProductoPage({ params }: Props) {
           <div className="mt-12 max-w-3xl mx-auto px-4 sm:px-8">
             <section>
               <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                Descripción del artículo del vendedor
+                {t("description")}
               </h2>
               <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
-                {lineasDescripcion.map((t, i) => {
-                  if (t.startsWith("### ")) {
+                {lineasDescripcion.map((linea, i) => {
+                  if (linea.startsWith("### ")) {
                     return (
                       <h3
                         key={i}
                         className="text-base font-bold text-gray-900 mt-6 mb-2"
                       >
-                        {t.replace(/^###\s*/, "")}
+                        {linea.replace(/^###\s*/, "")}
                       </h3>
                     );
                   }
-                  if (t.startsWith("- ")) {
+                  if (linea.startsWith("- ")) {
                     return (
                       <p key={i} className="pl-1">
-                        {t}
+                        {linea}
                       </p>
                     );
                   }
-                  return <p key={i}>{t}</p>;
+                  return <p key={i}>{linea}</p>;
                 })}
               </div>
             </section>
@@ -237,7 +246,7 @@ export default async function ProductoPage({ params }: Props) {
         {relacionados.length > 0 ? (
           <div className="mt-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Productos relacionados
+              {t("related")}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
               {relacionados.map((item: any) => (

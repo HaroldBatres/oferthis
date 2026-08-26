@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
 import FavoriteButton from "./FavoriteButton";
 import DiscountBadge from "./DiscountBadge";
+import { getTranslations } from "next-intl/server";
 
 type Producto = {
   id: number;
@@ -44,7 +44,7 @@ function ProductCard({ p }: { p: Producto }) {
         </div>
       </div>
       <div className="p-3">
-            <h4 className="text-xs font-semibold line-clamp-2 text-black group-hover:text-orange-500">
+        <h4 className="text-xs font-semibold line-clamp-2 text-black group-hover:text-orange-500">
           {p.nombre}
         </h4>
         <p className="text-orange-500 font-bold text-sm mt-1">{p.precio}</p>
@@ -99,7 +99,7 @@ export default async function StoreSection({
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         {cabecera}
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {productos.slice(0, 15).map((p) => (
             <ProductCard key={p.id} p={p} />
           ))}

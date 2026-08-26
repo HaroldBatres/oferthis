@@ -11,7 +11,6 @@ export default function SearchBar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (query.trim()) {
       router.push(`/buscar?q=${encodeURIComponent(query.trim())}`);
     }
