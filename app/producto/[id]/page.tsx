@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Producto } from "../../models/product";
 import ShareButton from "../../components/ShareButton";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
@@ -11,9 +10,7 @@ import Comments from "../../components/Comments";
 import ProductImageGallery from "../../components/ProductImageGallery";
 
 type Props = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -22,22 +19,15 @@ export async function generateMetadata({ params }: Props) {
     SELECT * FROM productos WHERE id = ${Number(id)}
   `) as any;
   const producto = resultado[0];
-
-  if (!producto) {
-    return {
-      title: "Producto no encontrado | Oferthis",
-    };
-  }
-
+  if (!producto) return { title: "Producto no encontrado | Oferthis" };
   return {
-    title: `${producto.nombre} - ${producto.descuento} | Oferthis`,
-    description: `Oferta de ${producto.nombre} en ${producto.tienda}. Precio: ${producto.precio} (antes ${producto.antes}).`,
+    title: `${producto.nombre} | Oferthis`,
+    description: `Oferta de ${producto.nombre} en ${producto.tienda}. Precio: ${producto.precio}`,
   };
 }
 
 export default async function ProductoPage({ params }: Props) {
   const { id } = await params;
-
   const resultado = (await sql`
     SELECT * FROM productos WHERE id = ${Number(id)}
   `) as any;
@@ -48,26 +38,33 @@ export default async function ProductoPage({ params }: Props) {
       <>
         <Header />
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900">
             Producto no encontrado
           </h1>
-          <p className="mt-4 text-gray-600">ID buscado: {id}</p>
         </main>
         <Footer />
       </>
     );
   }
 
-  const precioActual = parseFloat(
-    String(producto.precio).replace("€", "").replace(",", ".")
-  );
-  const precioAnterior = parseFloat(
-    String(producto.antes || "0").replace("€", "").replace(",", ".")
-  );
+  const titulo = String(producto.nombre ?? "Producto sin nombre");
+  const descripcion = producto.descripcion
+    ? String(producto.descripcion)
+    : "";
+  const caracteristicas = producto.caracteristicas
+    ? String(producto.caracteristicas)
+    : "";
+
+  const precioActual =
+    parseFloat(
+      String(producto.precio || "0").replace("€", "").replace(",", ".")
+    ) || 0;
+  const precioAnterior =
+    parseFloat(
+      String(producto.antes || "0").replace("€", "").replace(",", ".")
+    ) || 0;
   const ahorro =
-    !isNaN(precioAnterior) && !isNaN(precioActual)
-      ? precioAnterior - precioActual
-      : 0;
+    precioAnterior > precioActual ? precioAnterior - precioActual : 0;
   const porcentajeAhorro =
     precioAnterior > 0 ? Math.round((ahorro / precioAnterior) * 100) : 0;
 
@@ -79,10 +76,29 @@ export default async function ProductoPage({ params }: Props) {
     LIMIT 4
   `) as any[];
 
+  let listaImagenes: string[] = [];
+  if (Array.isArray(producto.imagenes)) {
+    listaImagenes = producto.imagenes;
+  } else if (typeof producto.imagenes === "string") {
+    try {
+      const p = JSON.parse(producto.imagenes);
+      if (Array.isArray(p)) listaImagenes = p;
+    } catch {
+      /* ignore */
+    }
+  }
+  if (listaImagenes.length === 0 && producto.imagen) {
+    listaImagenes = [producto.imagen];
+  }
+
+  const lineasDescripcion = descripcion
+    ? descripcion.split(/\n+/).map((l) => l.trim()).filter(Boolean)
+    : [];
+
   return (
     <>
       <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white text-gray-900">
         <Link
           href="/"
           className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
@@ -91,112 +107,79 @@ export default async function ProductoPage({ params }: Props) {
           Volver a las ofertas
         </Link>
 
-        <div className="grid md:grid-cols-[1.6fr_1fr] gap-8 md:gap-12 items-start">
-          {/* Imagen izquierda */}
-          <ProductImageGallery
-            imagenes={(() => {
-              let lista: string[] = [];
-              if (producto.imagenes) {
-                if (Array.isArray(producto.imagenes)) {
-                  lista = producto.imagenes;
-                } else if (typeof producto.imagenes === "string") {
-                  try {
-                    const parsed = JSON.parse(producto.imagenes);
-                    if (Array.isArray(parsed)) lista = parsed;
-                  } catch {
-                    /* ignore */
-                  }
-                }
-              }
-              if (lista.length === 0 && producto.imagen) {
-                lista = [producto.imagen];
-              }
-              return lista;
-            })()}
-            alt={producto.nombre}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr_1fr] gap-6 lg:gap-8 items-start">
+          <div className="order-2 lg:order-1 min-w-0">
+            {caracteristicas ? (
+              <section>
+                <h2 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
+                  Características del artículo
+                </h2>
+                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {caracteristicas}
+                </div>
+              </section>
+            ) : (
+              <p className="text-sm text-gray-400">Sin características.</p>
+            )}
+          </div>
 
-          {/* Información derecha */}
-          <div>
-            {producto.descuento && (
-              <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-semibold">
+          <div className="order-1 lg:order-2 min-w-0">
+            <ProductImageGallery imagenes={listaImagenes} alt={titulo} />
+          </div>
+
+          <div className="order-3 min-w-0">
+            {producto.descuento ? (
+              <span className="inline-block bg-red-500 text-white px-3 py-1 rounded text-sm font-bold">
                 {producto.descuento}
               </span>
-            )}
+            ) : null}
 
-            {producto.etiqueta && (
-              <p className="mt-4 inline-block bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-sm">
-                {producto.etiqueta}
-              </p>
-            )}
-
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-3 text-sm text-gray-500">
               Referencia #{producto.id}
             </p>
 
-            {/* Título del producto — visible en móvil y escritorio */}
-            <h1 className="mt-3 text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
-              {producto.nombre}
+            <h1 className="mt-2 text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug">
+              {titulo}
             </h1>
 
-            {producto.valoracion && (
-              <p className="mt-4 text-yellow-600 text-lg font-semibold">
-                ⭐ {producto.valoracion} ({producto.opiniones} opiniones)
-              </p>
-            )}
+            <p className="mt-4 text-lg text-gray-800">
+              Vendido por{" "}
+              <span className="font-bold text-orange-500">{producto.tienda}</span>
+            </p>
 
-            <div className="mt-5 space-y-2.5">
-              <p className="text-lg text-gray-800">
-                Vendido por{" "}
-                <span className="font-bold text-orange-500">
-                  {producto.tienda}
-                </span>
-              </p>
-
-              <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+            {producto.categoria ? (
+              <span className="mt-3 inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
                 📂 {producto.categoria}
               </span>
+            ) : null}
 
-              {producto.entrega && (
-                <p className="text-green-600 font-medium">
-                  🚚 {producto.entrega}
-                </p>
-              )}
+            {producto.disponible !== false ? (
+              <p className="mt-3 font-semibold text-green-600">✅ Disponible</p>
+            ) : (
+              <p className="mt-3 font-semibold text-red-600">❌ Agotado</p>
+            )}
 
-              {producto.disponible !== undefined && (
-                <p
-                  className={`font-semibold ${
-                    producto.disponible ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {producto.disponible ? "✅ Disponible" : "❌ Agotado"}
-                </p>
-              )}
-            </div>
-
-            {/* Precios */}
-            <div className="mt-8 p-5 bg-orange-50 rounded-2xl border border-orange-100">
+            <div className="mt-6 p-5 bg-orange-50 rounded-2xl border border-orange-100">
               <div className="flex items-end gap-3">
                 <span className="text-4xl font-bold text-orange-500">
                   {producto.precio}
                 </span>
-                {producto.antes && (
+                {producto.antes ? (
                   <span className="text-lg text-gray-400 line-through mb-1">
                     {producto.antes}
                   </span>
-                )}
+                ) : null}
               </div>
-              {ahorro > 0 && (
+              {ahorro > 0 ? (
                 <p className="mt-2 text-green-600 font-semibold">
                   Ahorras {ahorro.toFixed(2).replace(".", ",")} € (
                   {porcentajeAhorro}%)
                 </p>
-              )}
+              ) : null}
             </div>
 
-            {/* Botones */}
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              {producto.url && (
+              {producto.url ? (
                 <a
                   href={producto.url}
                   target="_blank"
@@ -205,7 +188,7 @@ export default async function ProductoPage({ params }: Props) {
                 >
                   Comprar en {producto.tienda}
                 </a>
-              )}
+              ) : null}
               <ShareButton />
             </div>
 
@@ -216,56 +199,43 @@ export default async function ProductoPage({ params }: Props) {
               />
               <VoteButtons productId={producto.id} />
             </div>
-
-            {/* Historial de precios */}
-            {producto.historial_precios &&
-              producto.historial_precios.length > 0 && (
-                <div className="mt-10">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span>📈</span> Historial de precios
-                  </h2>
-                  <div className="overflow-hidden rounded-xl border border-gray-200">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">
-                            Fecha
-                          </th>
-                          <th className="text-left p-4 font-medium text-gray-600">
-                            Precio
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {producto.historial_precios.map(
-                          (
-                            item: { fecha: string; precio: string },
-                            index: number
-                          ) => (
-                            <tr
-                              key={index}
-                              className="border-t border-gray-100 hover:bg-gray-50"
-                            >
-                              <td className="p-4 text-gray-700">
-                                {item.fecha}
-                              </td>
-                              <td className="p-4 font-semibold text-orange-500">
-                                {item.precio}
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
           </div>
         </div>
 
-        {/* Productos relacionados */}
-        {relacionados.length > 0 && (
-          <div className="mt-16">
+        {lineasDescripcion.length > 0 ? (
+          <div className="mt-12 max-w-3xl mx-auto px-4 sm:px-8">
+            <section>
+              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                Descripción del artículo del vendedor
+              </h2>
+              <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
+                {lineasDescripcion.map((t, i) => {
+                  if (t.startsWith("### ")) {
+                    return (
+                      <h3
+                        key={i}
+                        className="text-base font-bold text-gray-900 mt-6 mb-2"
+                      >
+                        {t.replace(/^###\s*/, "")}
+                      </h3>
+                    );
+                  }
+                  if (t.startsWith("- ")) {
+                    return (
+                      <p key={i} className="pl-1">
+                        {t}
+                      </p>
+                    );
+                  }
+                  return <p key={i}>{t}</p>;
+                })}
+              </div>
+            </section>
+          </div>
+        ) : null}
+
+        {relacionados.length > 0 ? (
+          <div className="mt-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Productos relacionados
             </h2>
@@ -274,7 +244,7 @@ export default async function ProductoPage({ params }: Props) {
                 <Link
                   key={item.id}
                   href={`/producto/${item.id}`}
-                  className="bg-white rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden"
+                  className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition overflow-hidden"
                 >
                   <Image
                     src={item.imagen}
@@ -295,7 +265,7 @@ export default async function ProductoPage({ params }: Props) {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         <Comments productoId={producto.id} />
       </main>
