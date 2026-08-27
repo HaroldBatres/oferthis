@@ -17,9 +17,9 @@ export default async function Categories() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16">
-      <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 md:mb-10 text-gray-900">
-        {t("categories")}
-      </h3>
+      <h3 className="text-3xl md:text-4xl font-bold mb-10 text-white">
+  {t("categories")}
+</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
         {categorias.map((categoria) => (
