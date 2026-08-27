@@ -7,6 +7,10 @@
     {
       "path": "/api/caducar-automatico",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/comprobar-disponibilidad",
+      "schedule": "0 */6 * * *"
     }
   ]
 }
