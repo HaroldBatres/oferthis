@@ -8,9 +8,15 @@ function extraerAsin(url: string | null): string | null {
   return match ? match[1] : null;
 }
 
-function normalizarPrecioGuardado(precio: string | null): string {
-  if (!precio) return "";
-  return precio.replace(/\s/g, "").toLowerCase();
+function precioANumero(precio: string | null): number | null {
+  if (!precio) return null;
+  const n = parseFloat(
+    String(precio)
+      .replace("€", "")
+      .replace(/\s/g, "")
+      .replace(",", ".")
+  );
+  return Number.isNaN(n) ? null : n;
 }
 
 export async function comprobarProducto(
@@ -37,26 +43,6 @@ export async function comprobarProducto(
           WHERE id = ${id}
         `;
         return { id, estado: "no_disponible", disponible: false };
-      }
-
-      if (
-        estado.precio &&
-        precioGuardado &&
-        normalizarPrecioGuardado(estado.precio) !==
-          normalizarPrecioGuardado(precioGuardado)
-      ) {
-        await sql`
-          UPDATE productos
-          SET disponible = false,
-              ultima_actualizacion = ${"Precio cambió en eBay"}
-          WHERE id = ${id}
-        `;
-        return {
-          id,
-          estado: "precio_cambiado",
-          disponible: false,
-          precioEbay: estado.precio,
-        };
       }
 
       await sql`
@@ -119,6 +105,7 @@ export async function comprobarTodosLosProductos() {
     SELECT id, url, tienda, precio
     FROM productos
     WHERE LOWER(tienda) IN ('amazon', 'ebay')
+      AND (disponible = true OR disponible IS NULL)
   `) as any[];
 
   const resultados = [];

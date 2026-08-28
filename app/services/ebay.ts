@@ -213,7 +213,7 @@ export type EbayEstado = {
 /** Estado del anuncio: existe + precio actual en eBay */
 export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
   const itemId = extractEbayItemId(url);
-  if (!itemId) return { existe: false, precio: null };
+  if (!itemId) return { existe: true, precio: null };
 
   const token = await getAppToken();
   const headers = {
@@ -230,7 +230,16 @@ export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
     res = await fetch(`${EBAY_BROWSE_BASE}/item/${itemId}`, { headers });
   }
 
-  if (!res.ok) return { existe: false, precio: null };
+  if (!res.ok) {
+    const text = await res.text();
+    const noEsta =
+      res.status === 404 ||
+      /item not found|not found/i.test(text);
+
+    if (noEsta) return { existe: false, precio: null };
+
+    return { existe: true, precio: null };
+  }
 
   const data = await res.json();
   const qty =
