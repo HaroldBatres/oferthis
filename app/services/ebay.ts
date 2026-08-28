@@ -79,7 +79,6 @@ function cleanEbayHtml(html: string): string {
   text = text.replace(/<\/p>/gi, "\n\n");
   text = text.replace(/<\/div>/gi, "\n");
   text = text.replace(/<\/tr>/gi, "\n");
-
   text = text.replace(/<[^>]+>/g, " ");
 
   text = text
@@ -116,7 +115,6 @@ function cleanEbayHtml(html: string): string {
       for (const re of titleHints) {
         if (re.test(line)) return `### ${line}`;
       }
-      // Títulos cortos sin punto final (heurística)
       if (
         line.length > 8 &&
         line.length < 80 &&
@@ -198,4 +196,34 @@ export async function fetchEbayItemDetails(
   }
 
   return mapEbayItem(await res.json());
+}
+
+/** true = el anuncio sigue activo en eBay */
+export async function ebayAnuncioExiste(url: string): Promise<boolean> {
+  const itemId = extractEbayItemId(url);
+  if (!itemId) return false;
+
+  const token = await getAppToken();
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
+  };
+
+  let res = await fetch(`${EBAY_BROWSE_BASE}/item/v1|${itemId}|0`, {
+    headers,
+  });
+
+  if (!res.ok) {
+    res = await fetch(`${EBAY_BROWSE_BASE}/item/${itemId}`, { headers });
+  }
+
+  if (!res.ok) return false;
+
+  const data = await res.json();
+  const qty =
+    data?.estimatedAvailabilities?.[0]?.estimatedAvailableQuantity;
+  if (qty === 0) return false;
+
+  return true;
 }
