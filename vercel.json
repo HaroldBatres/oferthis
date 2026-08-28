@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/comprobar-disponibilidad",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 4 * * *"
     }
   ]
 }
