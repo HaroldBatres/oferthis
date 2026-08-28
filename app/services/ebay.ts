@@ -14,7 +14,6 @@ function getCredentials() {
   return { clientId, clientSecret };
 }
 
-/** Extrae el ID del anuncio desde una URL de eBay */
 export function extractEbayItemId(url: string): string | null {
   if (!url) return null;
   const match = url.match(/\/itm\/(?:[^/]+\/)?(\d{9,15})/);
@@ -160,7 +159,6 @@ function mapEbayItem(data: any): EbayItemDetails {
   return { title, descripcion, caracteristicas };
 }
 
-/** Obtiene descripción y características de un ítem eBay */
 export async function fetchEbayItemDetails(
   itemIdOrUrl: string
 ): Promise<EbayItemDetails> {
@@ -200,7 +198,10 @@ export async function fetchEbayItemDetails(
 
 function normalizarPrecioEbay(valor: string | number | null): string | null {
   if (valor === null || valor === undefined || valor === "") return null;
-  const n = typeof valor === "number" ? valor : parseFloat(String(valor).replace(",", "."));
+  const n =
+    typeof valor === "number"
+      ? valor
+      : parseFloat(String(valor).replace(",", "."));
   if (Number.isNaN(n)) return null;
   return n.toFixed(2).replace(".", ",") + "€";
 }
@@ -210,7 +211,6 @@ export type EbayEstado = {
   precio: string | null;
 };
 
-/** Estado del anuncio: existe + precio actual en eBay */
 export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
   const itemId = extractEbayItemId(url);
   if (!itemId) return { existe: true, precio: null };
@@ -233,8 +233,7 @@ export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
   if (!res.ok) {
     const text = await res.text();
     const noEsta =
-      res.status === 404 ||
-      /item not found|not found/i.test(text);
+      res.status === 404 || /item not found|not found/i.test(text);
 
     if (noEsta) return { existe: false, precio: null };
 
@@ -253,4 +252,67 @@ export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
 export async function ebayAnuncioExiste(url: string): Promise<boolean> {
   const estado = await ebayEstadoAnuncio(url);
   return estado.existe;
+}
+
+export type EbayOfertaNueva = {
+  itemId: string;
+  title: string;
+  precio: string;
+  antes: string | null;
+  descuento: string | null;
+  imagen: string | null;
+  url: string;
+};
+
+export async function searchEbayOfertas(
+  q: string,
+  limit = 8
+): Promise<EbayOfertaNueva[]> {
+  const token = await getAppToken();
+  const params = new URLSearchParams({
+    q,
+    limit: String(limit),
+  });
+
+  const res = await fetch(
+    `${EBAY_BROWSE_BASE}/item_summary/search?${params.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`eBay search ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const items = data?.itemSummaries || [];
+
+  return items.map((item: any) => {
+    const actual = item?.price?.value
+      ? normalizarPrecioEbay(item.price.value)
+      : null;
+    const original = item?.marketingPrice?.originalPrice?.value
+      ? normalizarPrecioEbay(item.marketingPrice.originalPrice.value)
+      : null;
+    const pct = item?.marketingPrice?.discountPercentage
+      ? `-${Math.round(Number(item.marketingPrice.discountPercentage))}%`
+      : null;
+
+    return {
+      itemId: String(item.itemId || ""),
+      title: String(item.title || "Producto eBay"),
+      precio: actual || "0,00€",
+      antes: original,
+      descuento: pct,
+      imagen:
+        item?.image?.imageUrl || item?.thumbnailImages?.[0]?.imageUrl || null,
+      url: item?.itemWebUrl || item?.itemAffiliateWebUrl || "",
+    };
+  });
 }
