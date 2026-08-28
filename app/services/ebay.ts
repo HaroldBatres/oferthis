@@ -198,10 +198,22 @@ export async function fetchEbayItemDetails(
   return mapEbayItem(await res.json());
 }
 
-/** true = el anuncio sigue activo en eBay */
-export async function ebayAnuncioExiste(url: string): Promise<boolean> {
+function normalizarPrecioEbay(valor: string | number | null): string | null {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = typeof valor === "number" ? valor : parseFloat(String(valor).replace(",", "."));
+  if (Number.isNaN(n)) return null;
+  return n.toFixed(2).replace(".", ",") + "€";
+}
+
+export type EbayEstado = {
+  existe: boolean;
+  precio: string | null;
+};
+
+/** Estado del anuncio: existe + precio actual en eBay */
+export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
   const itemId = extractEbayItemId(url);
-  if (!itemId) return false;
+  if (!itemId) return { existe: false, precio: null };
 
   const token = await getAppToken();
   const headers = {
@@ -218,12 +230,18 @@ export async function ebayAnuncioExiste(url: string): Promise<boolean> {
     res = await fetch(`${EBAY_BROWSE_BASE}/item/${itemId}`, { headers });
   }
 
-  if (!res.ok) return false;
+  if (!res.ok) return { existe: false, precio: null };
 
   const data = await res.json();
   const qty =
     data?.estimatedAvailabilities?.[0]?.estimatedAvailableQuantity;
-  if (qty === 0) return false;
+  if (qty === 0) return { existe: false, precio: null };
 
-  return true;
+  const raw = data?.price?.value ?? data?.currentBidPrice?.value ?? null;
+  return { existe: true, precio: normalizarPrecioEbay(raw) };
+}
+
+export async function ebayAnuncioExiste(url: string): Promise<boolean> {
+  const estado = await ebayEstadoAnuncio(url);
+  return estado.existe;
 }

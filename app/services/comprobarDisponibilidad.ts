@@ -1,6 +1,6 @@
 import { sql } from "../lib/db";
 import { getAmazonItem } from "./amazon";
-import { ebayAnuncioExiste } from "./ebay";
+import { ebayEstadoAnuncio } from "./ebay";
 
 function extraerAsin(url: string | null): string | null {
   if (!url) return null;
@@ -8,10 +8,16 @@ function extraerAsin(url: string | null): string | null {
   return match ? match[1] : null;
 }
 
+function normalizarPrecioGuardado(precio: string | null): string {
+  if (!precio) return "";
+  return precio.replace(/\s/g, "").toLowerCase();
+}
+
 export async function comprobarProducto(
   id: number,
   url: string | null,
-  tienda: string | null
+  tienda: string | null,
+  precioGuardado: string | null
 ) {
   const tiendaNorm = (tienda || "").toLowerCase();
 
@@ -21,20 +27,46 @@ export async function comprobarProducto(
     }
 
     try {
-      const existe = await ebayAnuncioExiste(url);
+      const estado = await ebayEstadoAnuncio(url);
+
+      if (!estado.existe) {
+        await sql`
+          UPDATE productos
+          SET disponible = false,
+              ultima_actualizacion = ${"Caducado en eBay"}
+          WHERE id = ${id}
+        `;
+        return { id, estado: "no_disponible", disponible: false };
+      }
+
+      if (
+        estado.precio &&
+        precioGuardado &&
+        normalizarPrecioGuardado(estado.precio) !==
+          normalizarPrecioGuardado(precioGuardado)
+      ) {
+        await sql`
+          UPDATE productos
+          SET disponible = false,
+              ultima_actualizacion = ${"Precio cambió en eBay"}
+          WHERE id = ${id}
+        `;
+        return {
+          id,
+          estado: "precio_cambiado",
+          disponible: false,
+          precioEbay: estado.precio,
+        };
+      }
 
       await sql`
         UPDATE productos
-        SET disponible = ${existe},
+        SET disponible = true,
             ultima_actualizacion = ${"Comprobado automáticamente eBay"}
         WHERE id = ${id}
       `;
 
-      return {
-        id,
-        estado: existe ? "disponible" : "no_disponible",
-        disponible: existe,
-      };
+      return { id, estado: "disponible", disponible: true };
     } catch (error: any) {
       return {
         id,
@@ -84,7 +116,7 @@ export async function comprobarProducto(
 
 export async function comprobarTodosLosProductos() {
   const productos = (await sql`
-    SELECT id, url, tienda
+    SELECT id, url, tienda, precio
     FROM productos
     WHERE LOWER(tienda) IN ('amazon', 'ebay')
   `) as any[];
@@ -92,7 +124,12 @@ export async function comprobarTodosLosProductos() {
   const resultados = [];
 
   for (const p of productos) {
-    const resultado = await comprobarProducto(p.id, p.url, p.tienda);
+    const resultado = await comprobarProducto(
+      p.id,
+      p.url,
+      p.tienda,
+      p.precio
+    );
     resultados.push(resultado);
   }
 
