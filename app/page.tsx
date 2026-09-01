@@ -12,63 +12,26 @@ export const metadata = {
     "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más. Ahorra dinero todos los días con Oferthis.",
 };
 
-function esOferta(p: any) {
-  const d = String(p.descuento || "");
-  return d && d !== "-0%" && d !== "0%" && d !== "";
-}
-
 export default async function Home() {
-  const productos = (await sql`
+  const deEbay = (await sql`
     SELECT * FROM productos
-    WHERE disponible = true OR disponible IS NULL
-    ORDER BY id DESC
+    WHERE LOWER(tienda) = 'ebay'
+      AND (disponible = true OR disponible IS NULL)
+    ORDER BY
+      COALESCE(
+        NULLIF(regexp_replace(COALESCE(descuento, ''), '[^0-9]', '', 'g'), ''),
+        '0'
+      )::int DESC,
+      id DESC
+    LIMIT 60
   `) as any[];
 
-  const deAmazon = productos
-    .filter(
-      (p) =>
-        (p.tienda || "").toLowerCase() === "amazon" && esOferta(p)
-    )
-    .slice(0, 15);
-
-  const deEbay = productos
-    .filter(
-      (p) =>
-        (p.tienda || "").toLowerCase() === "ebay" &&
-        esOferta(p) &&
-        p.url &&
-        String(p.url).includes("/itm/")
-    )
-    .slice(0, 15);
-
-  const deAli = productos
-    .filter(
-      (p) =>
-        ((p.tienda || "").toLowerCase() === "aliexpress" ||
-          (p.tienda || "").toLowerCase() === "ali express") &&
-        esOferta(p)
-    )
-    .slice(0, 15);
   return (
     <main>
       <Header />
       <Hero />
       <Categories />
-
-      <StoreSection tienda="Amazon" productos={deAmazon} color="orange" />
-      <StoreSection
-        tienda="eBay"
-        productos={deEbay}
-        color="blue"
-        plano
-      />
-      <StoreSection
-        tienda="AliExpress"
-        productos={deAli}
-        color="red"
-        plano
-      />
-
+      <StoreSection tienda="eBay" productos={deEbay} color="blue" plano />
       <Benefits />
       <Footer />
     </main>
