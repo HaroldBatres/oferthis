@@ -1,100 +1,152 @@
 import Link from "next/link";
 import Image from "next/image";
-import productos from "../data/products";
-import type { Producto } from "../models/product";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { sql } from "../lib/db";
+import { searchEbayOfertas } from "../services/ebay";
+import FavoriteButton from "../components/FavoriteButton";
+import DiscountBadge from "../components/DiscountBadge";
 
 type Props = {
-  searchParams: Promise<{
-    q?: string;
-  }>;
+  searchParams: Promise<{ q?: string }>;
 };
 
 export default async function BuscarPage({ searchParams }: Props) {
   const { q } = await searchParams;
-  const query = q?.toLowerCase().trim() || "";
+  const query = (q || "").trim();
 
-  const resultados = query
-    ? productos.filter(
-        (p: Producto) =>
-          p.nombre.toLowerCase().includes(query) ||
-          p.categoria.toLowerCase().includes(query) ||
-          p.tienda.toLowerCase().includes(query)
+  if (!query) {
+    return (
+      <>
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 py-16">
+          <h1 className="text-2xl font-bold">Buscar ofertas</h1>
+          <p className="text-gray-500 mt-2">Escribe algo en el buscador.</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  const locales = (await sql`
+    SELECT * FROM productos
+    WHERE disponible IS DISTINCT FROM false
+      AND (
+        nombre ILIKE ${"%" + query + "%"}
+        OR categoria ILIKE ${"%" + query + "%"}
+        OR tienda ILIKE ${"%" + query + "%"}
       )
-    : [];
+    ORDER BY id DESC
+    LIMIT 50
+  `) as any[];
+
+  let ebay: Awaited<ReturnType<typeof searchEbayOfertas>> = [];
+  try {
+    ebay = await searchEbayOfertas(query, 100);
+  } catch (e) {
+    console.error("Búsqueda eBay:", e);
+  }
+
+  const vistos = new Set(
+    locales.map((p) => String(p.nombre || "").toLowerCase())
+  );
+
+  const ebayUnicos = ebay.filter((item) => {
+    const key = item.title.toLowerCase();
+    if (vistos.has(key)) return false;
+    vistos.add(key);
+    return true;
+  });
+
+  const total = locales.length + ebayUnicos.length;
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-      {/* Botón volver */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
-      >
-        <span className="text-lg">←</span>
-        Volver a las ofertas
-      </Link>
-
-      <div className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          Resultados de búsqueda
+    <>
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">
+          Resultados para “{query}”
         </h1>
-        <p className="text-gray-500">
-          {query
-            ? `${resultados.length} resultado${resultados.length !== 1 ? "s" : ""} para “${q}”`
-            : "Escribe algo en el buscador para encontrar ofertas"}
+        <p className="text-gray-500 mb-8">
+          {total} ofertas (Oferthis + eBay en vivo)
         </p>
-      </div>
 
-      {resultados.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">
-            No se encontraron productos.
-          </p>
-          <Link
-            href="/"
-            className="inline-block mt-6 text-orange-500 font-semibold hover:underline"
-          >
-            Volver al inicio
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {resultados.map((item: Producto) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {locales.map((p: any) => (
             <Link
-              key={item.id}
-              href={`/producto/${item.id}`}
-              className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden"
+              key={`local-${p.id}`}
+              href={`/producto/${p.id}`}
+              className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition"
             >
-              <div className="relative overflow-hidden">
+              <div className="relative overflow-hidden rounded-t-xl">
                 <Image
-                  src={item.imagen}
-                  alt={item.nombre}
+                  src={p.imagen}
+                  alt={p.nombre}
                   width={300}
                   height={300}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition duration-300"
+                  unoptimized
+                  className="w-full h-40 object-cover"
                 />
-                <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
-                  {item.descuento}
-                </span>
-              </div>
-
-              <div className="p-4">
-                <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-orange-500 transition">
-                  {item.nombre}
-                </h3>
-
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-orange-500 font-bold text-lg">
-                    {item.precio}
-                  </span>
-                  <span className="text-xs text-gray-400 line-through">
-                    {item.antes}
-                  </span>
+                <DiscountBadge descuento={p.descuento || ""} />
+                <div className="absolute top-2 right-2 z-20">
+                  <FavoriteButton productId={p.id} />
                 </div>
+              </div>
+              <div className="p-3">
+                <h3 className="text-xs font-semibold line-clamp-2">{p.nombre}</h3>
+                <p className="text-orange-500 font-bold text-sm mt-1">
+                  {p.precio}
+                </p>
               </div>
             </Link>
           ))}
+
+          {ebayUnicos.map((item) => (
+            <a
+              key={`ebay-${item.itemId}`}
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition"
+            >
+              <div className="relative overflow-hidden rounded-t-xl">
+                {item.imagen && (
+                  <Image
+                    src={item.imagen}
+                    alt={item.title}
+                    width={300}
+                    height={300}
+                    unoptimized
+                    className="w-full h-40 object-cover"
+                  />
+                )}
+                <DiscountBadge descuento={item.descuento || ""} />
+                <span className="absolute bottom-2 left-2 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded">
+                  eBay
+                </span>
+              </div>
+              <div className="p-3">
+                <h3 className="text-xs font-semibold line-clamp-2">
+                  {item.title}
+                </h3>
+                <p className="text-orange-500 font-bold text-sm mt-1">
+                  {item.precio}
+                </p>
+                {item.antes && (
+                  <p className="text-gray-400 text-xs line-through">
+                    {item.antes}
+                  </p>
+                )}
+              </div>
+            </a>
+          ))}
         </div>
-      )}
-    </main>
+
+        {total === 0 && (
+          <p className="text-gray-500">No hay resultados para esa búsqueda.</p>
+        )}
+      </main>
+      <Footer />
+    </>
   );
 }

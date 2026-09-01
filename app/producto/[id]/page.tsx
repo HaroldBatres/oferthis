@@ -112,7 +112,7 @@ export default async function ProductoPage({ params }: Props) {
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr_1fr] gap-6 lg:gap-8 items-start">
           <div className="order-2 lg:order-1 min-w-0">
-            {caracteristicas ? (
+            {caracteristicas && caracteristicas !== "[sin ficha eBay]" ? (
               <section>
                 <h2 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
                   {t("features")}

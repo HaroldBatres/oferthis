@@ -66,6 +66,10 @@ export default async function StoreSection({
   const t = await getTranslations("Home");
 
   if (!productos || productos.length === 0) return null;
+    const lista = productos.filter(
+    (p, i, arr) =>
+      arr.findIndex((x) => x.nombre === p.nombre && x.tienda === p.tienda) === i
+  );
 
   const franja =
     color === "blue"
@@ -100,7 +104,7 @@ export default async function StoreSection({
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         {cabecera}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {productos.slice(0, 15).map((p) => (
+          {lista.slice(0, 30).map((p) => (
             <ProductCard key={p.id} p={p} />
           ))}
         </div>
@@ -109,7 +113,7 @@ export default async function StoreSection({
   }
 
   const porCategoria: Record<string, Producto[]> = {};
-  for (const p of productos) {
+    for (const p of lista) {
     const cat = p.categoria || "Otros";
     if (!porCategoria[cat]) porCategoria[cat] = [];
     porCategoria[cat].push(p);

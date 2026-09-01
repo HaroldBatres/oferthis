@@ -16,10 +16,11 @@ function getCredentials() {
 
 export function extractEbayItemId(url: string): string | null {
   if (!url) return null;
-  const match = url.match(/\/itm\/(?:[^/]+\/)?(\d{9,15})/);
-  if (match) return match[1];
-  const onlyDigits = url.match(/(\d{9,15})/);
-  return onlyDigits ? onlyDigits[1] : null;
+  const itm = url.match(/\/itm\/(?:[^/?#]+\/)?(\d{9,15})/i);
+  if (itm) return itm[1];
+  const itemParam = url.match(/[?&]item=(\d{9,15})/i);
+  if (itemParam) return itemParam[1];
+  return null;
 }
 
 async function getAppToken(): Promise<string> {
@@ -48,16 +49,15 @@ export type EbayItemDetails = {
   title: string;
   descripcion: string;
   caracteristicas: string;
+  imagenes: string[];
 };
 
 function cleanEbayHtml(html: string): string {
   if (!html) return "";
 
   let text = html;
-
   text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ");
   text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ");
-
   text = text.replace(
     /<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,
     (_m, inner: string) => {
@@ -65,7 +65,6 @@ function cleanEbayHtml(html: string): string {
       return t ? `\n\n### ${t}\n\n` : "\n\n";
     }
   );
-
   text = text.replace(
     /<li[^>]*>([\s\S]*?)<\/li>/gi,
     (_m, inner: string) => {
@@ -73,13 +72,11 @@ function cleanEbayHtml(html: string): string {
       return t ? `\n- ${t}` : "";
     }
   );
-
   text = text.replace(/<br\s*\/?>/gi, "\n");
   text = text.replace(/<\/p>/gi, "\n\n");
   text = text.replace(/<\/div>/gi, "\n");
   text = text.replace(/<\/tr>/gi, "\n");
   text = text.replace(/<[^>]+>/g, " ");
-
   text = text
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
@@ -87,44 +84,15 @@ function cleanEbayHtml(html: string): string {
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'");
-
   text = text.replace(/@font-face[\s\S]*?\}/gi, " ");
   text = text.replace(/@media[^{]+\{[\s\S]*?\}\s*\}/gi, " ");
   text = text.replace(/\{[^}]*\}/g, " ");
-
   text = text
     .split("\n")
     .map((l) => l.replace(/[ \t]+/g, " ").trim())
     .filter((l, i, arr) => !(l === "" && arr[i - 1] === ""))
     .join("\n")
     .trim();
-
-  const titleHints = [
-    /^(Comedero .+ en detalle)$/i,
-    /^(Comedero ergonómico.+)$/i,
-    /^(Contenido del envío)$/i,
-    /^(Detalles?)$/i,
-    /^(Características)$/i,
-  ];
-
-  text = text
-    .split("\n")
-    .map((line) => {
-      if (line.startsWith("### ") || line.startsWith("- ")) return line;
-      for (const re of titleHints) {
-        if (re.test(line)) return `### ${line}`;
-      }
-      if (
-        line.length > 8 &&
-        line.length < 80 &&
-        !line.includes(".") &&
-        /^[A-ZÁÉÍÓÚÑ]/.test(line)
-      ) {
-        return `### ${line}`;
-      }
-      return line;
-    })
-    .join("\n");
 
   const MAX = 4000;
   if (text.length > MAX) {
@@ -156,44 +124,71 @@ function mapEbayItem(data: any): EbayItemDetails {
 
   const caracteristicas = aspects.join("\n");
 
-  return { title, descripcion, caracteristicas };
+  const imagenes: string[] = [];
+  if (data?.image?.imageUrl) imagenes.push(data.image.imageUrl);
+  const extras = data?.additionalImages || [];
+  if (Array.isArray(extras)) {
+    for (const img of extras) {
+      if (img?.imageUrl && !imagenes.includes(img.imageUrl)) {
+        imagenes.push(img.imageUrl);
+      }
+    }
+  }
+
+  return { title, descripcion, caracteristicas, imagenes };
 }
 
 export async function fetchEbayItemDetails(
   itemIdOrUrl: string
 ): Promise<EbayItemDetails> {
+  const vacio: EbayItemDetails = {
+    title: "",
+    descripcion: "",
+    caracteristicas: "",
+    imagenes: [],
+  };
+
   const itemId =
     extractEbayItemId(itemIdOrUrl) || itemIdOrUrl.replace(/\D/g, "");
-  if (!itemId) {
-    throw new Error("No se pudo obtener el ID del anuncio eBay");
-  }
+  if (!itemId) return vacio;
 
-  const token = await getAppToken();
+  try {
+    const token = await getAppToken();
+    const markets = [
+      "EBAY_ES",
+      "EBAY_GB",
+      "EBAY_DE",
+      "EBAY_IT",
+      "EBAY_FR",
+      "EBAY_US",
+    ];
 
-  const res = await fetch(`${EBAY_BROWSE_BASE}/item/v1|${itemId}|0`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
-    },
-  });
-
-  if (!res.ok) {
-    const res2 = await fetch(`${EBAY_BROWSE_BASE}/item/${itemId}`, {
-      headers: {
+    for (const market of markets) {
+      const headers = {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
-      },
-    });
-    if (!res2.ok) {
-      const text = await res2.text();
-      throw new Error(`Browse eBay falló: ${res.status}/${res2.status} ${text}`);
+        "X-EBAY-C-MARKETPLACE-ID": market,
+      };
+
+      const urls = [
+        `${EBAY_BROWSE_BASE}/item/get_item_by_legacy_id?legacy_item_id=${itemId}&fieldgroups=PRODUCT`,
+        `${EBAY_BROWSE_BASE}/item/v1|${itemId}|0?fieldgroups=PRODUCT`,
+        `${EBAY_BROWSE_BASE}/item/v1%7C${itemId}%7C0?fieldgroups=PRODUCT`,
+        `${EBAY_BROWSE_BASE}/item/${itemId}?fieldgroups=PRODUCT`,
+      ];
+
+      for (const url of urls) {
+        const res = await fetch(url, { headers });
+        if (res.ok) {
+          return mapEbayItem(await res.json());
+        }
+      }
     }
-    return mapEbayItem(await res2.json());
+  } catch (e) {
+    console.error("fetchEbayItemDetails", e);
   }
 
-  return mapEbayItem(await res.json());
+  return vacio;
 }
 
 function normalizarPrecioEbay(valor: string | number | null): string | null {
@@ -222,21 +217,20 @@ export async function ebayEstadoAnuncio(url: string): Promise<EbayEstado> {
     "X-EBAY-C-MARKETPLACE-ID": "EBAY_ES",
   };
 
-  let res = await fetch(`${EBAY_BROWSE_BASE}/item/v1|${itemId}|0`, {
-    headers,
-  });
+  let res = await fetch(
+    `${EBAY_BROWSE_BASE}/item/get_item_by_legacy_id?legacy_item_id=${itemId}`,
+    { headers }
+  );
 
   if (!res.ok) {
-    res = await fetch(`${EBAY_BROWSE_BASE}/item/${itemId}`, { headers });
+    res = await fetch(`${EBAY_BROWSE_BASE}/item/v1|${itemId}|0`, { headers });
   }
 
   if (!res.ok) {
     const text = await res.text();
     const noEsta =
       res.status === 404 || /item not found|not found/i.test(text);
-
     if (noEsta) return { existe: false, precio: null };
-
     return { existe: true, precio: null };
   }
 
@@ -262,11 +256,12 @@ export type EbayOfertaNueva = {
   descuento: string | null;
   imagen: string | null;
   url: string;
+  descripcion: string;
 };
 
 export async function searchEbayOfertas(
   q: string,
-  limit = 8
+  limit = 200
 ): Promise<EbayOfertaNueva[]> {
   const token = await getAppToken();
   const params = new URLSearchParams({
@@ -304,7 +299,7 @@ export async function searchEbayOfertas(
       ? `-${Math.round(Number(item.marketingPrice.discountPercentage))}%`
       : null;
 
-    return {
+      return {
       itemId: String(item.itemId || ""),
       title: String(item.title || "Producto eBay"),
       precio: actual || "0,00€",
@@ -313,6 +308,7 @@ export async function searchEbayOfertas(
       imagen:
         item?.image?.imageUrl || item?.thumbnailImages?.[0]?.imageUrl || null,
       url: item?.itemWebUrl || item?.itemAffiliateWebUrl || "",
+      descripcion: String(item.shortDescription || ""),
     };
   });
 }

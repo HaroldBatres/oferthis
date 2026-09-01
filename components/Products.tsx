@@ -79,7 +79,7 @@ function ProductSection({
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {items.map((producto) => (
-          <ProductCard key={producto.id} producto={producto} />
+          <ProductCard key={`${titulo}-${producto.id}`} producto={producto} />
         ))}
       </div>
     </section>
@@ -88,6 +88,8 @@ function ProductSection({
 
 export default function Products({ productos }: Props) {
   const lista = Array.isArray(productos) ? productos : [];
+
+  const destacados = lista.slice(0, 30);
 
   const ofertasFlash = (
     lista.filter((p) => p.etiqueta).length > 0
@@ -99,25 +101,19 @@ export default function Products({ productos }: Props) {
     .sort((a, b) => parseDescuento(b.descuento) - parseDescuento(a.descuento))
     .slice(0, 4);
 
-  const masPopulares = [...lista]
-    .sort((a, b) => {
-      const scoreA =
-        (Number(a.valoracion) || 0) * 1000 + (Number(a.opiniones) || 0);
-      const scoreB =
-        (Number(b.valoracion) || 0) * 1000 + (Number(b.opiniones) || 0);
-      return scoreB - scoreA;
-    })
-    .slice(0, 4);
-
   return (
     <div className="pt-4">
+      <ProductSection
+        titulo="Ofertas destacadas"
+        icono="🛒"
+        items={destacados}
+      />
       <ProductSection titulo="Ofertas Flash" icono="🔥" items={ofertasFlash} />
       <ProductSection
         titulo="Mayor descuento"
         icono="📉"
         items={mayorDescuento}
       />
-      <ProductSection titulo="Más populares" icono="⭐" items={masPopulares} />
     </div>
   );
 }

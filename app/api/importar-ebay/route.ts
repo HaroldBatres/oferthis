@@ -1,122 +1,65 @@
 import { NextResponse } from "next/server";
 import { sql } from "../../lib/db";
+import { searchEbayOfertas } from "../../services/ebay";
 
-async function getEbayToken() {
-  const appId = process.env.EBAY_APP_ID;
-  const certId = process.env.EBAY_CERT_ID;
+const CAMPID = process.env.EBAY_CAMPAIGN_ID || "";
 
-  if (!appId || !certId) {
-    throw new Error("Faltan EBAY_APP_ID o EBAY_CERT_ID");
-  }
-
-  const credentials = Buffer.from(`${appId}:${certId}`).toString("base64");
-
-  const res = await fetch(
-    "https://api.sandbox.ebay.com/identity/v1/oauth2/token",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${credentials}`,
-      },
-      body: "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope",
-    }
-  );
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(JSON.stringify(data));
-  }
-
-  return data.access_token as string;
+function enlaceAfiliado(url: string) {
+  if (!url) return url;
+  if (!CAMPID) return url;
+  if (url.includes("campid=")) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}mkcid=1&mkrid=1185-53479-19255-0&siteid=186&campid=${CAMPID}&toolid=10001&mkevt=1`;
 }
 
 export async function GET() {
   try {
-    const token = await getEbayToken();
-
-    // Búsqueda de prueba en Sandbox (cambiar q= por otra palabra si quieres)
-    const q = "headphones";
-    const searchUrl = `https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(q)}&limit=10`;
-
-    const searchRes = await fetch(searchUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
-        "Content-Type": "application/json",
-      },
-    });
-
-    const searchData = await searchRes.json();
-
-    if (!searchRes.ok) {
-      return NextResponse.json(
-        { error: "Error al buscar en eBay", detalles: searchData },
-        { status: searchRes.status }
-      );
-    }
-
-    const items = searchData.itemSummaries || [];
+    const ofertas = await searchEbayOfertas("oferta", 80);
     let insertados = 0;
-    const errores: string[] = [];
+    let omitidos = 0;
 
-    for (const item of items) {
-      try {
-        const nombre = item.title || "Sin título";
-        const precioValor = item.price?.value || "0";
-        const moneda = item.price?.currency || "USD";
-        const precio = `${precioValor} ${moneda}`;
-        const imagen =
-          item.image?.imageUrl ||
-          item.thumbnailImages?.[0]?.imageUrl ||
-          "https://picsum.photos/400/400";
-        const url = item.itemWebUrl || item.itemHref || "https://www.ebay.com";
-        const ebayId = item.itemId || item.legacyItemId || null;
-
-        // Evitar duplicados por nombre + tienda (simple para Sandbox)
-        const existentes = await sql`
-          SELECT id FROM productos
-          WHERE nombre = ${nombre} AND tienda = 'eBay'
-          LIMIT 1
-        `;
-
-        if (existentes.length > 0) {
-          continue;
-        }
-
-        await sql`
-          INSERT INTO productos (
-            nombre, tienda, precio, antes, descuento, categoria,
-            imagen, url, disponible, ultima_actualizacion
-          ) VALUES (
-            ${nombre},
-            'eBay',
-            ${precio},
-            ${precio},
-            '-0%',
-            'Tecnología',
-            ${imagen},
-            ${url},
-            true,
-            ${"Importado de eBay " + new Date().toISOString()}
-          )
-        `;
-        insertados++;
-      } catch (e: any) {
-        errores.push(e?.message || "Error al insertar un ítem");
+    for (const o of ofertas) {
+      const url = enlaceAfiliado(o.url);
+      if (!url) {
+        omitidos++;
+        continue;
       }
+
+      const existe = (await sql`
+                SELECT id FROM productos
+        WHERE nombre = ${o.title} AND LOWER(tienda) = 'ebay'
+        LIMIT 1
+      `) as any[];
+      if (existe.length > 0) {
+        omitidos++;
+        continue;
+      }
+
+      await sql`
+        INSERT INTO productos (
+          nombre, tienda, precio, antes, descuento,
+          categoria, imagen, url, descripcion, disponible
+        )
+        VALUES (
+          ${o.title},
+          ${"eBay"},
+          ${o.precio},
+          ${o.antes || o.precio},
+          ${o.descuento || ""},
+          ${"Ofertas"},
+          ${o.imagen || ""},
+          ${url},
+          ${o.descripcion || ""},
+          ${true}
+        )
+      `;
+      insertados++;
     }
 
-    return NextResponse.json({
-      ok: true,
-      mensaje: "Importación eBay Sandbox finalizada",
-      encontrados: items.length,
-      insertados,
-      errores: errores.slice(0, 5),
-    });
-  } catch (err: any) {
+    return NextResponse.json({ ok: true, insertados, omitidos });
+  } catch (e: any) {
     return NextResponse.json(
-      { error: "Fallo en importar-ebay", detalles: err?.message },
+      { ok: false, error: String(e?.message || e) },
       { status: 500 }
     );
   }
