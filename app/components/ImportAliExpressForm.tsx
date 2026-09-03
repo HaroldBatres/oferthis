@@ -76,6 +76,27 @@ export default function ImportAliExpressForm() {
         >
           Importar catálogo
         </button>
+                <button
+          type="button"
+          disabled={loading}
+          onClick={async () => {
+            setLoading(true);
+            setMensaje("Actualizando fotos...");
+            const res = await fetch("/api/actualizar-fotos-aliexpress", {
+              method: "POST",
+            });
+            const data = await res.json();
+            setLoading(false);
+            setMensaje(
+              data.success
+                ? `Fotos actualizadas: ${data.actualizados}`
+                : data.error || "Error"
+            );
+          }}
+          className="bg-white border px-6 py-3 rounded-xl font-bold"
+        >
+          Actualizar fotos existentes
+        </button>
       </div>
       {mensaje && <p className="mt-3 text-sm font-medium">{mensaje}</p>}
     </form>

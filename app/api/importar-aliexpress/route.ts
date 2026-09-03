@@ -69,9 +69,12 @@ async function guardarProductos(keywords: string) {
     const descNum = String(p.discount || "0").replace("%", "");
     const descuento = descNum && descNum !== "0" ? `-${descNum}%` : "0%";
 
+        const extraFotos = p.product_small_image_urls?.string || [];
+    const fotos = Array.isArray(extraFotos) ? extraFotos : extraFotos ? [extraFotos] : [];
+
     await sql`
       INSERT INTO productos (
-        nombre, tienda, precio, antes, descuento, categoria, imagen, url, disponible
+        nombre, tienda, precio, antes, descuento, categoria, imagen, url, disponible, imagenes, descripcion
       ) VALUES (
         ${p.product_title},
         ${"AliExpress"},
@@ -79,9 +82,11 @@ async function guardarProductos(keywords: string) {
         ${antes},
         ${descuento},
         ${"Tecnología"},
-        ${p.product_main_image_url || ""},
+        ${p.product_main_image_url || fotos[0] || ""},
         ${p.promotion_link || p.product_detail_url || ""},
-        ${true}
+        ${true},
+        ${JSON.stringify(fotos)},
+        ${p.product_title}
       )
     `;
     insertados += 1;

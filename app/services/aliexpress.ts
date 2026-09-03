@@ -49,3 +49,38 @@ export async function searchAliExpress(keywords: string) {
   const data = await res.json();
   return { status: res.status, data };
 }
+
+export async function getAliExpressByIds(ids: string[]) {
+  const appKey = process.env.ALIEXPRESS_APP_KEY!;
+  const appSecret = process.env.ALIEXPRESS_APP_SECRET!;
+  const trackingId = process.env.ALIEXPRESS_TRACKING_ID!;
+
+  const now = new Date();
+  const timestamp = now.toISOString().slice(0, 19).replace("T", " ");
+
+  const params: Record<string, string> = {
+    method: "aliexpress.affiliate.productdetail.get",
+    app_key: appKey,
+    sign_method: "md5",
+    timestamp,
+    format: "json",
+    v: "2.0",
+    product_ids: ids.join(","),
+    tracking_id: trackingId,
+    target_currency: "EUR",
+    target_language: "ES",
+    ship_to_country: "ES",
+  };
+
+  params.sign = sign(params, appSecret);
+
+  const url = API_URL + "?" + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
+
+export function extraerIdAliExpress(url: string) {
+  if (!url) return "";
+  const m = url.match(/\/item\/(\d+)/) || url.match(/(\d{13,})/);
+  return m ? m[1] : "";
+}
