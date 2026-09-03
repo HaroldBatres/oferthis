@@ -11,6 +11,7 @@ import MarkUnavailableButton from "../components/MarkUnavailableButton";
 import EditProductButton from "../components/EditProductButton";
 import SyncEbayButton from "../components/SyncEbayButton";
 import LimpiarOfertasButton from "../components/LimpiarOfertasButton";
+import ImportAliExpressForm from "../components/ImportAliExpressForm";
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -50,7 +51,8 @@ export default async function AdminPage() {
         </div>
 
         <CreateProductForm />
-
+        
+        <ImportAliExpressForm />
         <div className="bg-white rounded-2xl border shadow-sm overflow-hidden mt-8">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">

@@ -26,12 +26,26 @@ export default async function Home() {
     LIMIT 60
   `) as any[];
 
+  const deAli = (await sql`
+    SELECT * FROM productos
+    WHERE LOWER(tienda) = 'aliexpress'
+      AND (disponible = true OR disponible IS NULL)
+    ORDER BY
+      COALESCE(
+        NULLIF(regexp_replace(COALESCE(descuento, ''), '[^0-9]', '', 'g'), ''),
+        '0'
+      )::int DESC,
+      id DESC
+    LIMIT 60
+  `) as any[];
+
   return (
     <main>
       <Header />
       <Hero />
       <Categories />
       <StoreSection tienda="eBay" productos={deEbay} color="blue" plano />
+      <StoreSection tienda="AliExpress" productos={deAli} color="orange" plano />
       <Benefits />
       <Footer />
     </main>

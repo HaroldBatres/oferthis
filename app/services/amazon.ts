@@ -1,75 +1,63 @@
-const clientId = process.env.AMAZON_CLIENT_ID!;
-const clientSecret = process.env.AMAZON_CLIENT_SECRET!;
-const partnerTag = process.env.AMAZON_PARTNER_TAG!;
+const TOKEN_URL = "https://api.amazon.co.uk/auth/o2/token";
+const SEARCH_URL = "https://creatorsapi.amazon/catalog/v1/searchItems";
 
-export const amazonConfig = {
-  clientId,
-  clientSecret,
-  partnerTag,
-  marketplace: "www.amazon.es",
-  tokenUrl: "https://api.amazon.co.uk/auth/o2/token", // Europa / España → v3.2
-  apiBase: "https://creatorsapi.amazon",
-};
+async function getAccessToken() {
+  const clientId = process.env.AMAZON_CLIENT_ID;
+  const clientSecret = process.env.AMAZON_CLIENT_SECRET;
 
-export function isAmazonConfigured(): boolean {
-  return Boolean(clientId && clientSecret && partnerTag);
-}
+  if (!clientId || !clientSecret) {
+    throw new Error("Faltan AMAZON_CLIENT_ID o AMAZON_CLIENT_SECRET");
+  }
 
-export async function getAmazonAccessToken(): Promise<string> {
-  const res = await fetch(amazonConfig.tokenUrl, {
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: clientId,
+    client_secret: clientSecret,
+    scope: "creatorsapi::default",
+  });
+
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+
+  const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basic}`,
     },
-    body: JSON.stringify({
-      grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
-      scope: "creatorsapi::default",
-    }),
+    body: "grant_type=client_credentials&scope=creatorsapi%3A%3Adefault",
   });
 
   const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(
-      `Error al obtener token: ${JSON.stringify(data)}`
-    );
+  if (!res.ok || !data.access_token) {
+    throw new Error(JSON.stringify(data));
   }
 
-  return data.access_token;
+  return data.access_token as string;
 }
 
-export async function getAmazonItem(asin: string) {
-  const token = await getAmazonAccessToken();
+export async function searchAmazon(keywords: string) {
+  const token = await getAccessToken();
+  const partnerTag = process.env.AMAZON_PARTNER_TAG || "";
 
-  const res = await fetch(`${amazonConfig.apiBase}/catalog/v1/getItems`, {
+  const res = await fetch(SEARCH_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      "x-marketplace": amazonConfig.marketplace,
+      Authorization: `Bearer ${token}`,
+      "x-marketplace": "www.amazon.es",
     },
     body: JSON.stringify({
-      itemIds: [asin],
-      itemIdType: "ASIN",
-      marketplace: amazonConfig.marketplace,
-      partnerTag: partnerTag,
-            resources: [
+      partnerTag,
+      keywords,
+      itemCount: 3,
+      resources: [
         "itemInfo.title",
-        "offersV2.listings.price",
         "images.primary.large",
+        "offersV2.listings.price",
       ],
     }),
   });
 
   const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(
-      `Error al obtener producto: ${JSON.stringify(data)}`
-    );
-  }
-
-  return data;
+  return { status: res.status, data };
 }
