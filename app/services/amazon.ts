@@ -58,9 +58,11 @@ export async function searchAmazon(keywords: string) {
     }),
   });
 
-  const data = await res.json();
+    const data = await res.json();
   return { status: res.status, data };
-}export function isAmazonConfigured() {
+}
+
+export function isAmazonConfigured() {
   return Boolean(
     process.env.AMAZON_ACCESS_KEY &&
       process.env.AMAZON_SECRET_KEY &&
@@ -69,5 +71,15 @@ export async function searchAmazon(keywords: string) {
 }
 
 export async function getAmazonItem(asin: string) {
-  return searchAmazon(asin);
+  const result = await searchAmazon(asin);
+  const items =
+    result?.data?.itemsResult?.items ||
+    result?.data?.searchResult?.items ||
+    [];
+
+  return {
+    status: result.status,
+    data: result.data,
+    itemsResult: { items },
+  };
 }
