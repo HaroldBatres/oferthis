@@ -201,6 +201,19 @@ function normalizarPrecioEbay(valor: string | number | null): string | null {
   return n.toFixed(2).replace(".", ",") + "€";
 }
 
+function textoEntrega(item: any): string {
+  const opt = item?.shippingOptions?.[0];
+  const min = opt?.minEstimatedDeliveryDate || opt?.minEstimatedDeliveryDateTime;
+  const max = opt?.maxEstimatedDeliveryDate || opt?.maxEstimatedDeliveryDateTime;
+  if (min && max) {
+    return `Entrega estimada: ${String(min).slice(0, 10)} - ${String(max).slice(0, 10)}`;
+  }
+  if (min) {
+    return `Entrega estimada: ${String(min).slice(0, 10)}`;
+  }
+  return "";
+}
+
 export type EbayEstado = {
   existe: boolean;
   precio: string | null;
@@ -257,6 +270,7 @@ export type EbayOfertaNueva = {
   imagen: string | null;
   url: string;
   descripcion: string;
+  entrega: string;
 };
 
 export async function searchEbayOfertas(
@@ -264,9 +278,10 @@ export async function searchEbayOfertas(
   limit = 200
 ): Promise<EbayOfertaNueva[]> {
   const token = await getAppToken();
-  const params = new URLSearchParams({
+    const params = new URLSearchParams({
     q,
     limit: String(limit),
+    fieldgroups: "EXTENDED",
   });
 
   const res = await fetch(
@@ -299,7 +314,7 @@ export async function searchEbayOfertas(
       ? `-${Math.round(Number(item.marketingPrice.discountPercentage))}%`
       : null;
 
-      return {
+    return {
       itemId: String(item.itemId || ""),
       title: String(item.title || "Producto eBay"),
       precio: actual || "0,00€",
@@ -309,6 +324,7 @@ export async function searchEbayOfertas(
         item?.image?.imageUrl || item?.thumbnailImages?.[0]?.imageUrl || null,
       url: item?.itemWebUrl || item?.itemAffiliateWebUrl || "",
       descripcion: String(item.shortDescription || ""),
+      entrega: textoEntrega(item),
     };
   });
 }

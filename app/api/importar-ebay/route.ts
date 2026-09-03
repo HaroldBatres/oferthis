@@ -17,6 +17,7 @@ export async function GET() {
     const ofertas = await searchEbayOfertas("oferta", 80);
     let insertados = 0;
     let omitidos = 0;
+    let actualizados = 0;
 
     for (const o of ofertas) {
       const url = enlaceAfiliado(o.url);
@@ -26,19 +27,29 @@ export async function GET() {
       }
 
       const existe = (await sql`
-                SELECT id FROM productos
+        SELECT id, entrega FROM productos
         WHERE nombre = ${o.title} AND LOWER(tienda) = 'ebay'
         LIMIT 1
       `) as any[];
+
       if (existe.length > 0) {
-        omitidos++;
+        if (o.entrega && !existe[0].entrega) {
+          await sql`
+            UPDATE productos
+            SET entrega = ${o.entrega}
+            WHERE id = ${existe[0].id}
+          `;
+          actualizados++;
+        } else {
+          omitidos++;
+        }
         continue;
       }
 
       await sql`
         INSERT INTO productos (
           nombre, tienda, precio, antes, descuento,
-          categoria, imagen, url, descripcion, disponible
+          categoria, imagen, url, descripcion, entrega, disponible
         )
         VALUES (
           ${o.title},
@@ -50,13 +61,14 @@ export async function GET() {
           ${o.imagen || ""},
           ${url},
           ${o.descripcion || ""},
+          ${o.entrega || ""},
           ${true}
         )
       `;
       insertados++;
     }
 
-    return NextResponse.json({ ok: true, insertados, omitidos });
+    return NextResponse.json({ ok: true, insertados, omitidos, actualizados });
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: String(e?.message || e) },

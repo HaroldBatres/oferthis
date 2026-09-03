@@ -63,7 +63,7 @@
     "features": "Características del artículo",
     "noFeatures": "Sin características.",
     "description": "Descripción del artículo del vendedor",
-    "buyOn": "Comprar en {tienda}",
+    "buyOn": "Ir a oferta",
     "related": "Productos relacionados",
     "notFound": "Producto no encontrado",
     "ref": "Referencia #{id}",

@@ -49,7 +49,7 @@ export default function PriceAlertButton({ productId, precioActual }: Props) {
           onClick={() => setMostrar(true)}
           className="w-full border-2 border-orange-500 text-orange-500 hover:bg-orange-50 px-6 py-3 rounded-xl font-bold transition"
         >
-          🔔 Crear alerta de precio
+          🔔 Avisame si baja
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-xl border">

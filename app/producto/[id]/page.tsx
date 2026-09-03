@@ -166,6 +166,12 @@ export default async function ProductoPage({ params }: Props) {
               </p>
             )}
 
+            {producto.entrega ? (
+              <p className="mt-3 text-sm text-gray-700">
+                🚚 {producto.entrega}
+              </p>
+            ) : null}
+
             <div className="mt-6 p-5 bg-orange-50 rounded-2xl border border-orange-100">
               <div className="flex items-end gap-3">
                 <span className="text-4xl font-bold text-orange-500">
