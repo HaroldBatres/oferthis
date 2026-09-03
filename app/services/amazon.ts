@@ -60,4 +60,14 @@ export async function searchAmazon(keywords: string) {
 
   const data = await res.json();
   return { status: res.status, data };
+}export function isAmazonConfigured() {
+  return Boolean(
+    process.env.AMAZON_ACCESS_KEY &&
+      process.env.AMAZON_SECRET_KEY &&
+      process.env.AMAZON_PARTNER_TAG
+  );
+}
+
+export async function getAmazonItem(asin: string) {
+  return searchAmazon(asin);
 }
