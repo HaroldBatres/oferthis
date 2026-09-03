@@ -35,7 +35,7 @@ export async function searchAliExpress(keywords: string) {
     v: "2.0",
     keywords,
     page_no: "1",
-    page_size: "5",
+    page_size: "20",
     tracking_id: trackingId,
     target_currency: "EUR",
     target_language: "ES",
