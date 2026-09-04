@@ -84,3 +84,32 @@ export function extraerIdAliExpress(url: string) {
   const m = url.match(/\/item\/(\d+)/) || url.match(/(\d{13,})/);
   return m ? m[1] : "";
 }
+
+export function extraerFotosAliExpress(obj: any): string[] {
+  const out: string[] = [];
+
+  function walk(v: any) {
+    if (!v) return;
+    if (typeof v === "string") {
+      if (
+        v.startsWith("http") &&
+        (v.includes("alicdn.com") ||
+          v.includes("aliexpress-media") ||
+          /\.(jpg|jpeg|png|webp)/i.test(v))
+      ) {
+        out.push(v.split("?")[0]);
+      }
+      return;
+    }
+    if (Array.isArray(v)) {
+      v.forEach(walk);
+      return;
+    }
+    if (typeof v === "object") {
+      Object.values(v).forEach(walk);
+    }
+  }
+
+  walk(obj);
+  return Array.from(new Set(out));
+}

@@ -9,6 +9,7 @@ import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
 import ProductImageGallery from "../../components/ProductImageGallery";
 import { getTranslations } from "next-intl/server";
+import BackToOffers from "../../components/BackToOffers";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -102,13 +103,7 @@ export default async function ProductoPage({ params }: Props) {
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white text-gray-900">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500 transition-colors"
-        >
-          <span className="text-lg">←</span>
-          {t("back")}
-        </Link>
+              <BackToOffers />
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr_1fr] gap-6 lg:gap-8 items-start">
           <div className="order-2 lg:order-1 min-w-0">
@@ -127,7 +122,14 @@ export default async function ProductoPage({ params }: Props) {
           </div>
 
           <div className="order-1 lg:order-2 min-w-0">
-            <ProductImageGallery imagenes={listaImagenes} alt={titulo} />
+                  <ProductImageGallery
+  imagenes={
+    Array.isArray(producto.imagenes) && producto.imagenes.length > 0
+      ? producto.imagenes
+      : producto.imagen
+  }
+  alt={titulo}
+/>
           </div>
 
           <div className="order-3 min-w-0">
