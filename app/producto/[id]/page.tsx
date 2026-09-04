@@ -8,8 +8,8 @@ import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
 import ProductImageGallery from "../../components/ProductImageGallery";
-import { getTranslations } from "next-intl/server";
 import BackToOffers from "../../components/BackToOffers";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -49,23 +49,24 @@ export default async function ProductoPage({ params }: Props) {
   }
 
   const titulo = String(producto.nombre ?? "Producto sin nombre");
-  const descripcion = producto.descripcion
-    ? String(producto.descripcion)
-    : "";
+  const descripcion = producto.descripcion ? String(producto.descripcion) : "";
   const caracteristicas = producto.caracteristicas
     ? String(producto.caracteristicas)
     : "";
 
+  const fichaLineas = (
+    caracteristicas && caracteristicas !== "[sin ficha eBay]"
+      ? caracteristicas.split(/\n+/)
+      : titulo.split(/[,;]/)
+  )
+    .map((l) => l.trim())
+    .filter((l) => l.length > 6);
+
   const precioActual =
-    parseFloat(
-      String(producto.precio || "0").replace("€", "").replace(",", ".")
-    ) || 0;
+    parseFloat(String(producto.precio || "0").replace("€", "").replace(",", ".")) || 0;
   const precioAnterior =
-    parseFloat(
-      String(producto.antes || "0").replace("€", "").replace(",", ".")
-    ) || 0;
-  const ahorro =
-    precioAnterior > precioActual ? precioAnterior - precioActual : 0;
+    parseFloat(String(producto.antes || "0").replace("€", "").replace(",", ".")) || 0;
+  const ahorro = precioAnterior > precioActual ? precioAnterior - precioActual : 0;
   const porcentajeAhorro =
     precioAnterior > 0 ? Math.round((ahorro / precioAnterior) * 100) : 0;
 
@@ -77,44 +78,28 @@ export default async function ProductoPage({ params }: Props) {
     LIMIT 4
   `) as any[];
 
-  let listaImagenes: string[] = [];
-  if (Array.isArray(producto.imagenes)) {
-    listaImagenes = producto.imagenes;
-  } else if (typeof producto.imagenes === "string") {
-    try {
-      const p = JSON.parse(producto.imagenes);
-      if (Array.isArray(p)) listaImagenes = p;
-    } catch {
-      /* ignore */
-    }
-  }
-  if (listaImagenes.length === 0 && producto.imagen) {
-    listaImagenes = [producto.imagen];
-  }
-
   const lineasDescripcion = descripcion
-    ? descripcion
-        .split(/\n+/)
-        .map((l) => l.trim())
-        .filter(Boolean)
+    ? descripcion.split(/\n+/).map((l) => l.trim()).filter(Boolean)
     : [];
 
   return (
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white text-gray-900">
-              <BackToOffers />
+        <BackToOffers />
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr_1fr] gap-6 lg:gap-8 items-start">
           <div className="order-2 lg:order-1 min-w-0">
-            {caracteristicas && caracteristicas !== "[sin ficha eBay]" ? (
+            {fichaLineas.length > 0 ? (
               <section>
                 <h2 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
                   {t("features")}
                 </h2>
-                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {caracteristicas}
-                </div>
+                <ul className="text-sm text-gray-800 leading-relaxed space-y-2 list-disc pl-5">
+                  {fichaLineas.map((linea, i) => (
+                    <li key={i}>{linea}</li>
+                  ))}
+                </ul>
               </section>
             ) : (
               <p className="text-sm text-gray-400">{t("noFeatures")}</p>
@@ -122,14 +107,14 @@ export default async function ProductoPage({ params }: Props) {
           </div>
 
           <div className="order-1 lg:order-2 min-w-0">
-                  <ProductImageGallery
-  imagenes={
-    Array.isArray(producto.imagenes) && producto.imagenes.length > 0
-      ? producto.imagenes
-      : producto.imagen
-  }
-  alt={titulo}
-/>
+            <ProductImageGallery
+              imagenes={
+                Array.isArray(producto.imagenes) && producto.imagenes.length > 0
+                  ? producto.imagenes
+                  : producto.imagen
+              }
+              alt={titulo}
+            />
           </div>
 
           <div className="order-3 min-w-0">
@@ -169,9 +154,7 @@ export default async function ProductoPage({ params }: Props) {
             )}
 
             {producto.entrega ? (
-              <p className="mt-3 text-sm text-gray-700">
-                🚚 {producto.entrega}
-              </p>
+              <p className="mt-3 text-sm text-gray-700">🚚 {producto.entrega}</p>
             ) : null}
 
             <div className="mt-6 p-5 bg-orange-50 rounded-2xl border border-orange-100">
@@ -229,10 +212,7 @@ export default async function ProductoPage({ params }: Props) {
                 {lineasDescripcion.map((linea, i) => {
                   if (linea.startsWith("### ")) {
                     return (
-                      <h3
-                        key={i}
-                        className="text-base font-bold text-gray-900 mt-6 mb-2"
-                      >
+                      <h3 key={i} className="text-base font-bold text-gray-900 mt-6 mb-2">
                         {linea.replace(/^###\s*/, "")}
                       </h3>
                     );
@@ -253,9 +233,7 @@ export default async function ProductoPage({ params }: Props) {
 
         {relacionados.length > 0 ? (
           <div className="mt-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {t("related")}
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("related")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
               {relacionados.map((item: any) => (
                 <Link
@@ -274,9 +252,7 @@ export default async function ProductoPage({ params }: Props) {
                     <h3 className="font-semibold text-sm line-clamp-2 text-gray-900">
                       {item.nombre}
                     </h3>
-                    <p className="text-orange-500 font-bold mt-2">
-                      {item.precio}
-                    </p>
+                    <p className="text-orange-500 font-bold mt-2">{item.precio}</p>
                   </div>
                 </Link>
               ))}
