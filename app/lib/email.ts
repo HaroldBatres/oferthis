@@ -21,7 +21,7 @@ export async function enviarAlertaPrecio(params: {
   try {
     const resend = getResend();
     const { data, error } = await resend.emails.send({
-      from: "Oferthis <onboarding@resend.dev>",
+      from: "Oferthis <hola@oferthis.com>",
       to: [to],
       subject: `🔔 Bajó el precio: ${nombreProducto}`,
       html: `
@@ -51,6 +51,38 @@ export async function enviarAlertaPrecio(params: {
     return { ok: true, data };
   } catch (err) {
     console.error("Error enviando email:", err);
+    return { ok: false, error: err };
+  }
+}
+
+export async function enviarBienvenidaNewsletter(to: string) {
+  try {
+    const resend = getResend();
+    const { error } = await resend.emails.send({
+      from: "Oferthis <hola@oferthis.com>",
+      to: [to],
+      subject: "Ya estás suscrito a Oferthis",
+      html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#f97316;">¡Bienvenido a Oferthis!</h2>
+          <p>Te has suscrito para recibir las mejores ofertas.</p>
+          <p>
+            <a href="https://oferthis.com"
+               style="display:inline-block;background:#f97316;color:white;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
+              Ver ofertas
+            </a>
+          </p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Error Resend newsletter:", error);
+      return { ok: false, error };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error(err);
     return { ok: false, error: err };
   }
 }
