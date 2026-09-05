@@ -42,7 +42,7 @@ export default async function Footer() {
 
         <div>
           <h4 className="font-bold mb-3">{t("links")}</h4>
-          <ul className="space-y-2 text-sm text-gray-400">
+                  <ul className="space-y-2 text-sm text-gray-400">
             <li>
               <Link href="/" className="hover:text-orange-500">
                 {t("home")}
@@ -51,6 +51,26 @@ export default async function Footer() {
             <li>
               <Link href="/favoritos" className="hover:text-orange-500">
                 {t("favorites")}
+              </Link>
+            </li>
+            <li>
+              <Link href="/aviso-legal" className="hover:text-orange-500">
+                Aviso legal
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacidad" className="hover:text-orange-500">
+                Privacidad
+              </Link>
+            </li>
+            <li>
+              <Link href="/cookies" className="hover:text-orange-500">
+                Cookies
+              </Link>
+            </li>
+            <li>
+              <Link href="/afiliados" className="hover:text-orange-500">
+                Afiliados
               </Link>
             </li>
           </ul>
