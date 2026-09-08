@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import StoreSection from "./components/StoreSection";
 import { sql } from "./lib/db";
 import NewsletterForm from "./components/NewsletterForm";
+import VideosOferthis from "./components/VideosOferthis";
 
 export const metadata = {
   title: "Oferthis - Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN",
@@ -42,9 +43,10 @@ export default async function Home() {
 
   return (
     <main>
-      <Header />
+            <Header />
       <Hero />
       <Categories />
+      <VideosOferthis />
       <StoreSection tienda="eBay" productos={deEbay} color="blue" plano />
            <StoreSection tienda="AliExpress" productos={deAli} color="orange" plano />
       <Benefits />

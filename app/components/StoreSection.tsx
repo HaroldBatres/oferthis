@@ -27,29 +27,36 @@ function ProductCard({ p }: { p: Producto }) {
   return (
     <Link
       href={`/producto/${p.id}`}
-      className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden"
+      className="group block overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-t-xl">
         <Image
           src={p.imagen}
           alt={p.nombre}
           width={200}
           height={200}
           unoptimized
-          className="w-full h-40 object-cover group-hover:scale-105 transition duration-300"
+          className="h-40 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
         />
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
         <DiscountBadge descuento={p.descuento || ""} />
-        <div className="absolute top-2 right-2">
+
+        <div className="absolute right-2 top-2 z-10">
           <FavoriteButton productId={p.id} />
         </div>
       </div>
+
       <div className="p-3">
-        <h4 className="text-xs font-semibold line-clamp-2 text-black group-hover:text-orange-500">
+        <h4 className="line-clamp-2 text-xs font-semibold text-black transition-colors duration-200 group-hover:text-orange-500">
           {p.nombre}
         </h4>
-        <p className="text-orange-500 font-bold text-sm mt-1">{p.precio}</p>
+
+        <p className="mt-1 text-sm font-bold text-orange-500">{p.precio}</p>
+
         {p.antes && p.antes !== p.precio && (
-          <p className="text-gray-500 text-xs line-through">{p.antes}</p>
+          <p className="text-xs text-gray-500 line-through">{p.antes}</p>
         )}
       </div>
     </Link>
@@ -66,7 +73,8 @@ export default async function StoreSection({
   const t = await getTranslations("Home");
 
   if (!productos || productos.length === 0) return null;
-    const lista = productos.filter(
+
+  const lista = productos.filter(
     (p, i, arr) =>
       arr.findIndex((x) => x.nombre === p.nombre && x.tienda === p.tienda) === i
   );
@@ -80,19 +88,20 @@ export default async function StoreSection({
 
   const cabecera = (
     <div
-      className={`rounded-2xl px-6 py-5 mb-8 flex items-center justify-between ${franja}`}
+      className={`mb-8 flex items-center justify-between rounded-2xl px-6 py-5 ${franja}`}
     >
       <div>
-        <p className="text-white/80 text-sm font-medium mb-0.5">
+        <p className="mb-0.5 text-sm font-medium text-white/80">
           {t("dealsSelection")}
         </p>
-        <h2 className="text-2xl md:text-3xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-white md:text-3xl">
           {t("storeDeals", { tienda })}
         </h2>
       </div>
+
       <Link
         href={`/tienda/${tienda.toLowerCase()}`}
-        className="text-sm font-semibold bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition"
+        className="rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/30"
       >
         {t("seeAll")} →
       </Link>
@@ -101,9 +110,9 @@ export default async function StoreSection({
 
   if (plano) {
     return (
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         {cabecera}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           {lista.slice(0, 30).map((p) => (
             <ProductCard key={p.id} p={p} />
           ))}
@@ -113,23 +122,25 @@ export default async function StoreSection({
   }
 
   const porCategoria: Record<string, Producto[]> = {};
-    for (const p of lista) {
+  for (const p of lista) {
     const cat = p.categoria || "Otros";
     if (!porCategoria[cat]) porCategoria[cat] = [];
     porCategoria[cat].push(p);
   }
+
   const categorias = Object.keys(porCategoria).sort();
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       {cabecera}
       <div className="space-y-10">
         {categorias.map((cat) => (
           <div key={cat}>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b border-gray-100 pb-2">
+            <h3 className="mb-4 border-b border-gray-100 pb-2 text-lg font-semibold text-gray-700">
               {cat}
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
               {porCategoria[cat].slice(0, maxPorCategoria).map((p) => (
                 <ProductCard key={p.id} p={p} />
               ))}
