@@ -15,6 +15,19 @@ export const metadata = {
 };
 
 export default async function Home() {
+  const deAmazon = (await sql`
+    SELECT * FROM productos
+    WHERE LOWER(tienda) = 'amazon'
+      AND (disponible = true OR disponible IS NULL)
+    ORDER BY
+      COALESCE(
+        NULLIF(regexp_replace(COALESCE(descuento, ''), '[^0-9]', '', 'g'), ''),
+        '0'
+      )::int DESC,
+      id DESC
+    LIMIT 60
+  `) as any[];
+
   const deEbay = (await sql`
     SELECT * FROM productos
     WHERE LOWER(tienda) = 'ebay'
@@ -43,12 +56,13 @@ export default async function Home() {
 
   return (
     <main>
-            <Header />
+      <Header />
       <Hero />
       <Categories />
       <VideosOferthis />
+      <StoreSection tienda="Amazon" productos={deAmazon} color="orange" plano />
       <StoreSection tienda="eBay" productos={deEbay} color="blue" plano />
-           <StoreSection tienda="AliExpress" productos={deAli} color="orange" plano />
+      <StoreSection tienda="AliExpress" productos={deAli} color="orange" plano />
       <Benefits />
       <section className="max-w-7xl mx-auto px-6 py-16">
         <NewsletterForm />
