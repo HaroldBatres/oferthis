@@ -1,83 +1,82 @@
 "use client";
 
 import Link from "next/link";
-import SearchBar from "./SearchBar";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { SignInButton, UserButton, Show } from "@clerk/nextjs";
-import { useTranslations } from "next-intl";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { useLocale } from "next-intl";
+import { setUserLocale } from "@/i18n/setLocale";
 
 export default function Header() {
-  const t = useTranslations("Header");
+  const locale = useLocale();
+
+  async function cambiarIdioma(next: "es" | "en") {
+    await setUserLocale(next);
+    window.location.reload();
+  }
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="text-2xl sm:text-3xl font-extrabold whitespace-nowrap"
-          >
-            Ofer<span className="text-orange-500">this</span>
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070b16]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <Link href="/" className="flex shrink-0 items-center">
+          <img
+            src="/logo-oferthis.png"
+            alt="Oferthis"
+            className="h-10 w-auto object-contain"
+          />
+        </Link>
+
+        <nav className="hidden items-center gap-6 text-sm text-gray-300 md:flex">
+          <Link href="/" className="hover:text-white">
+            Inicio
           </Link>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <LanguageSwitcher />
-
-            <Link
-              href="/favoritos"
-              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-xs sm:text-sm"
-            >
-              ❤️
-              <span className="hidden sm:inline"> {t("favorites")}</span>
-            </Link>
-
-                        <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button className="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded-lg font-bold text-xs sm:text-sm">
-                  {t("login")}
-                </button>
-              </SignInButton>
-            </Show>
-
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </div>
-        </div>
-
-        <div className="mt-3 md:hidden">
-          <SearchBar />
-        </div>
-
-        <nav className="hidden md:flex items-center gap-6 font-medium text-sm mt-3">
-          <Link href="/" className="hover:text-orange-500 transition">
-            {t("home")}
+          <Link href="/tienda/amazon" className="hover:text-white">
+            Amazon
           </Link>
-          <Link
-            href="/categoria/tecnologia"
-            className="hover:text-orange-500 transition"
-          >
-            {t("technology")}
+          <Link href="/tienda/ebay" className="hover:text-white">
+            eBay
           </Link>
-          <Link
-            href="/categoria/hogar"
-            className="hover:text-orange-500 transition"
-          >
-            {t("homeCategory")}
-          </Link>
-          <Link
-            href="/categoria/gaming"
-            className="hover:text-orange-500 transition"
-          >
-            {t("gaming")}
-          </Link>
-          <Link
-            href="/categoria/deporte"
-            className="hover:text-orange-500 transition"
-          >
-            {t("sport")}
+          <Link href="/tienda/aliexpress" className="hover:text-white">
+            AliExpress
           </Link>
         </nav>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <button
+              type="button"
+              onClick={() => cambiarIdioma("es")}
+              className={locale === "es" ? "text-orange-400" : "hover:text-orange-400"}
+            >
+              ES
+            </button>
+            <span className="text-white/40">|</span>
+            <button
+              type="button"
+              onClick={() => cambiarIdioma("en")}
+              className={locale === "en" ? "text-orange-400" : "hover:text-orange-400"}
+            >
+              EN
+            </button>
+          </div>
+
+          <Link
+            href="/favoritos"
+            className="rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600"
+          >
+            ♥ Favoritos
+          </Link>
+
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <button className="rounded-full bg-[#0b1220] px-4 py-2 text-sm font-bold text-white ring-1 ring-white/20 hover:bg-black">
+                Entrar
+              </button>
+            </SignInButton>
+          </Show>
+
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+        </div>
       </div>
     </header>
   );

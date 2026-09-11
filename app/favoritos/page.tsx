@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { sql } from "../lib/db";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import FavoriteButton from "../components/FavoriteButton";
 
@@ -34,7 +33,6 @@ export default async function FavoritosPage() {
 
   return (
     <>
-      <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <div className="mb-8">
           <Link

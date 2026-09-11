@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FavoriteButton from "../../components/FavoriteButton";
 import DiscountBadge from "../../components/DiscountBadge";
@@ -126,7 +125,6 @@ export default async function TiendaPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <Link
           href="/"
@@ -143,17 +141,17 @@ export default async function TiendaPage({ params, searchParams }: Props) {
           {productos.length === 1 ? t("product") : t("products")}
         </p>
 
-        <form
+                <form
           method="get"
           action={base}
-          className="mb-10 flex flex-col md:flex-row flex-wrap gap-3 p-4 bg-gray-50 rounded-2xl border"
+          className="mb-10 flex flex-col md:flex-row flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)]"
         >
           <input
             type="search"
             name="q"
             defaultValue={q || ""}
             placeholder={t("searchProduct")}
-            className="flex-1 min-w-[180px] rounded-xl border px-4 py-2.5 text-sm"
+            className="min-w-[180px] flex-1 rounded-xl border-2 border-gray-800 bg-white px-4 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 hover:shadow-[0_0_16px_rgba(249,115,22,0.4)] focus:border-orange-500 focus:shadow-[0_0_18px_rgba(249,115,22,0.5)]"
           />
           <input
             type="number"
@@ -162,7 +160,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
             placeholder={t("priceMin")}
             min={0}
             step={1}
-            className="w-full md:w-28 rounded-xl border px-3 py-2.5 text-sm"
+            className="w-full rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 md:w-28"
           />
           <input
             type="number"
@@ -171,30 +169,30 @@ export default async function TiendaPage({ params, searchParams }: Props) {
             placeholder={t("priceMax")}
             min={0}
             step={1}
-            className="w-full md:w-28 rounded-xl border px-3 py-2.5 text-sm"
+            className="w-full rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 md:w-28"
           />
           <select
             name="orden"
             defaultValue={orden || ""}
-            className="rounded-xl border px-3 py-2.5 text-sm"
+            className="rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black outline-none transition hover:border-orange-500"
           >
             <option value="">{t("orderRecent")}</option>
             <option value="precio">{t("orderPrice")}</option>
             <option value="descuento">{t("orderDiscount")}</option>
           </select>
-          <label className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap px-2">
+          <label className="flex items-center gap-2 whitespace-nowrap px-2 text-sm font-medium text-black">
             <input
               type="checkbox"
               name="soloOfertas"
               value="1"
               defaultChecked={soloOfertas === "1"}
-              className="rounded border-gray-300"
+              className="rounded border-gray-800"
             />
             {t("onlyDeals")}
           </label>
           <button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm"
+            className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
           >
             {t("filter")}
           </button>
@@ -209,7 +207,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
               const titulo = key ? tHome(key as any) : cat;
               return (
                 <div key={cat}>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+                  <h2 className="mb-4 border-b border-white/20 pb-2 text-xl font-semibold text-white">
                     {titulo}
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -234,10 +232,10 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                           </div>
                         </div>
                         <div className="p-3">
-                          <h3 className="text-sm font-semibold line-clamp-2 group-hover:text-orange-500">
+                                  <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-orange-500">
                             {p.nombre}
                           </h3>
-                          <p className="text-orange-500 font-bold mt-1">
+                              <p className="mt-1 font-bold text-orange-600">
                             {p.precio}
                           </p>
                           {p.antes && p.antes !== p.precio && (

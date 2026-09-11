@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import ShareButton from "../../components/ShareButton";
-import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { sql } from "../../lib/db";
 import PriceAlertButton from "../../components/PriceAlertButton";
@@ -10,6 +9,7 @@ import Comments from "../../components/Comments";
 import ProductImageGallery from "../../components/ProductImageGallery";
 import BackToOffers from "../../components/BackToOffers";
 import { getTranslations } from "next-intl/server";
+import ProductGallery from "../../components/ProductGallery";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -39,7 +39,6 @@ export default async function ProductoPage({ params }: Props) {
   if (!producto) {
     return (
       <>
-        <Header />
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
           <h1 className="text-3xl font-bold text-gray-900">{t("notFound")}</h1>
         </main>
@@ -84,7 +83,6 @@ export default async function ProductoPage({ params }: Props) {
 
   return (
     <>
-      <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white text-gray-900">
         <BackToOffers />
 

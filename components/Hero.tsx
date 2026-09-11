@@ -1,50 +1,56 @@
-import { getTranslations } from "next-intl/server";
-
-export default async function Hero() {
-  const t = await getTranslations("Home");
-
+export default function Hero() {
   return (
-    <section className="border-b border-orange-100 bg-gradient-to-b from-orange-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8">
-          <img
-            src="/logo-oferthis.png"
-            alt="Oferthis"
-            className="h-28 sm:h-36 md:h-44 w-auto object-contain shrink-0"
-          />
+    <section className="relative isolate overflow-hidden bg-[#070b16]">
+      <img
+        src="/hero-oferthis.jpg"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-right"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#070b16] via-[#070b16]/85 to-[#070b16]/20" />
 
-          <div className="text-center sm:text-left">
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-gray-900">
-              {t("heroTitle")}
-            </h2>
-            <p className="text-sm sm:text-base text-gray-500 mt-3 max-w-xl">
-              {t("heroSubtitle")}
-            </p>
-          </div>
-        </div>
+      <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+        <div className="max-w-xl">
+          <p className="mb-4 inline-flex rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] font-semibold tracking-wide text-white">
+            OFERTAS · CHOLLOS · DESCUENTOS
+          </p>
 
-        <form
-          action="/buscar"
-          method="get"
-          className="mt-8 max-w-2xl mx-auto w-full px-1"
-        >
-          <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-2xl shadow-sm focus-within:border-orange-500 transition p-1.5 sm:p-2 w-full">
+          <h1 className="text-4xl font-extrabold leading-[1.05] text-white md:text-5xl">
+            Las <span className="text-orange-500">mejores ofertas</span>,
+            <br />
+            en un solo lugar.
+          </h1>
+
+          <p className="mt-4 max-w-md text-sm text-gray-300">
+            Encuentra los mayores descuentos en Amazon, eBay, AliExpress
+            y muchas más tiendas.
+          </p>
+
+          <form action="/buscar" method="get" className="mt-6 flex max-w-lg overflow-hidden rounded-full bg-white shadow-lg">
             <input
-              type="search"
               name="q"
-              placeholder={t("searchPlaceholder")}
-              className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-base outline-none rounded-xl"
-              style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
-              required
+              placeholder="¿Qué estás buscando?"
+              className="min-w-0 flex-1 px-5 py-3 text-sm text-gray-900 outline-none"
             />
             <button
               type="submit"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl transition shrink-0 text-sm sm:text-base"
+              className="m-1 rounded-full bg-orange-500 px-5 text-sm font-bold text-white hover:bg-orange-600"
             >
-              {t("searchButton")}
+              Buscar →
             </button>
+          </form>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white">
+              <span>🛡️</span> Ofertas verificadas
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white">
+              <span>⚡</span> Actualizamos a diario
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white">
+              <span>🚚</span> Te redirigimos a la tienda
+            </span>
           </div>
-        </form>
+        </div>
       </div>
     </section>
   );

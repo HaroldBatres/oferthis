@@ -1,37 +1,76 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
 
-const categorias = [
-  { key: "cat_tecnologia", slug: "tecnologia", icono: "💻" },
-  { key: "cat_hogar", slug: "hogar", icono: "🏠" },
-  { key: "cat_gaming", slug: "gaming", icono: "🎮" },
-  { key: "cat_deporte", slug: "deporte", icono: "⚽" },
-  { key: "cat_cocina", slug: "cocina", icono: "🍳" },
-  { key: "cat_moda", slug: "moda", icono: "👕" },
-  { key: "cat_belleza", slug: "belleza", icono: "💄" },
-  { key: "cat_mascotas", slug: "mascotas", icono: "🐾" },
-] as const;
+const cats = [
+  { name: "Tecnología", icon: "💻", q: "tecnologia" },
+  { name: "Hogar", icon: "🏠", q: "hogar" },
+  { name: "Gaming", icon: "🎮", q: "gaming" },
+  { name: "Deporte", icon: "🏋️", q: "deporte" },
+  { name: "Cocina", icon: "🍲", q: "cocina" },
+  { name: "Moda", icon: "👗", q: "moda" },
+  { name: "Belleza", icon: "💄", q: "belleza" },
+  { name: "Mascotas", icon: "🐾", q: "mascotas" },
+];
 
-export default async function Categories() {
-  const t = await getTranslations("Home");
-
+export default function Categories() {
   return (
-    <section className="w-full bg-orange-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-        <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
-          {categorias.map((categoria) => (
-            <Link
-              key={categoria.slug}
-              href={`/categoria/${categoria.slug}`}
-                            className="bg-white rounded-xl px-2 py-2 shadow-sm border-2 border-black hover:shadow-xl hover:brightness-110 hover:-translate-y-0.5 transition duration-200 text-center"
-            >
-              <div className="text-xl leading-none">{categoria.icono}</div>
-              <span className="block text-[11px] font-semibold text-gray-800 mt-1">
-                {t(categoria.key)}
-              </span>
-            </Link>
-          ))}
+    <section className="bg-[#070b16] px-4 py-6 md:px-8">
+      <style>{`
+        .cat-icon {
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
+        }
+        .cat-icon:hover {
+          transform: scale(1.12);
+          border-color: #ff7a1a;
+          box-shadow:
+            0 0 8px #ff6a00,
+            0 0 18px #ff6a00,
+            0 0 32px rgba(255, 106, 0, 0.85),
+            inset 0 0 10px rgba(255, 140, 0, 0.35);
+          filter: drop-shadow(0 0 8px #ff9a00);
+        }
+        .cat-link:hover span:last-child {
+          color: #ff9a3c;
+          text-shadow: 0 0 8px rgba(255, 106, 0, 0.8);
+        }
+      `}</style>
+
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row">
+        <div className="flex-1 rounded-2xl border border-white/10 bg-[#0c1222] px-3 py-4">
+          <div className="grid grid-cols-4 gap-3 md:grid-cols-8">
+            {cats.map((c) => (
+              <Link
+                key={c.name}
+                href={`/buscar?q=${encodeURIComponent(c.q)}`}
+                className="cat-link flex flex-col items-center gap-2 text-gray-300"
+              >
+                <span className="cat-icon flex h-14 w-14 items-center justify-center rounded-full border-2 border-orange-500 text-2xl">
+                  {c.icon}
+                </span>
+                <span className="text-[11px]">{c.name}</span>
+              </Link>
+            ))}
+          </div>
         </div>
+
+        <Link
+          href="/buscar?q="
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0c1222] px-5 py-4 lg:w-72"
+        >
+          <div>
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 text-lg font-black text-white">
+              %
+            </div>
+            <p className="text-sm font-semibold text-white">
+              Las mejores ofertas de tus tiendas favoritas
+            </p>
+            <p className="mt-2 text-[11px] text-gray-400">
+              amazon · ebay · AliExpress
+            </p>
+          </div>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white">
+            →
+          </span>
+        </Link>
       </div>
     </section>
   );

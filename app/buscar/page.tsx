@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { sql } from "../lib/db";
 import { searchEbayOfertas } from "../services/ebay";
@@ -18,7 +17,6 @@ export default async function BuscarPage({ searchParams }: Props) {
   if (!query) {
     return (
       <>
-        <Header />
         <main className="max-w-7xl mx-auto px-4 py-16">
           <h1 className="text-2xl font-bold">Buscar ofertas</h1>
           <p className="text-gray-500 mt-2">Escribe algo en el buscador.</p>
@@ -62,7 +60,6 @@ export default async function BuscarPage({ searchParams }: Props) {
 
   return (
     <>
-      <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">
           Resultados para “{query}”

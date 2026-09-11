@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import CookieBanner from "./components/CookieBanner";
+import Header from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,20 +47,21 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    <html
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <html
-        lang={locale}
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      >
-        <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col">
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        >
           <NextIntlClientProvider locale={locale} messages={messages}>
+            <Header />
             {children}
             <CookieBanner />
           </NextIntlClientProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
