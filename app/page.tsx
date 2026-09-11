@@ -8,6 +8,7 @@ import { sql } from "./lib/db";
 import NewsletterForm from "./components/NewsletterForm";
 import VideosOferthis from "./components/VideosOferthis";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Oferthis - Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN",
   description:
@@ -15,19 +16,6 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const deAmazon = (await sql`
-    SELECT * FROM productos
-    WHERE LOWER(tienda) = 'amazon'
-      AND (disponible = true OR disponible IS NULL)
-    ORDER BY
-      COALESCE(
-        NULLIF(regexp_replace(COALESCE(descuento, ''), '[^0-9]', '', 'g'), ''),
-        '0'
-      )::int DESC,
-      id DESC
-    LIMIT 60
-  `) as any[];
-
   const deEbay = (await sql`
     SELECT * FROM productos
     WHERE LOWER(tienda) = 'ebay'
@@ -38,12 +26,29 @@ export default async function Home() {
         '0'
       )::int DESC,
       id DESC
-    LIMIT 60
+    LIMIT 8
   `) as any[];
 
-  const deAli = (await sql`
+   const deAli = (await sql`
+    SELECT * FROM (
+      SELECT DISTINCT ON (nombre) *
+      FROM productos
+      WHERE tienda ILIKE ${"%AliExpress%"}
+         OR tienda ILIKE ${"%Ali Express%"}
+      ORDER BY nombre, id DESC
+    ) t
+    ORDER BY
+      COALESCE(
+        NULLIF(regexp_replace(COALESCE(descuento, ''), '[^0-9]', '', 'g'), ''),
+        '0'
+      )::int DESC,
+      id DESC
+    LIMIT 8
+  `) as any[];
+
+  const deAmazon = (await sql`
     SELECT * FROM productos
-    WHERE LOWER(tienda) = 'aliexpress'
+    WHERE LOWER(tienda) = 'amazon'
       AND (disponible = true OR disponible IS NULL)
     ORDER BY
       COALESCE(
@@ -51,7 +56,7 @@ export default async function Home() {
         '0'
       )::int DESC,
       id DESC
-    LIMIT 60
+    LIMIT 8
   `) as any[];
 
   return (
@@ -60,9 +65,9 @@ export default async function Home() {
       <Hero />
       <Categories />
       <VideosOferthis />
-      <StoreSection tienda="Amazon" productos={deAmazon} color="orange" plano />
       <StoreSection tienda="eBay" productos={deEbay} color="blue" plano />
       <StoreSection tienda="AliExpress" productos={deAli} color="orange" plano />
+      <StoreSection tienda="Amazon" productos={deAmazon} color="orange" plano />
       <Benefits />
       <section className="max-w-7xl mx-auto px-6 py-16">
         <NewsletterForm />

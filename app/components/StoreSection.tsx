@@ -112,8 +112,8 @@ export default async function StoreSection({
     return (
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         {cabecera}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-          {lista.slice(0, 30).map((p) => (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {lista.slice(0, 8).map((p) => (
             <ProductCard key={p.id} p={p} />
           ))}
         </div>
