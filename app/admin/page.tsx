@@ -1,6 +1,5 @@
 import { sql } from "../lib/db";
 import Link from "next/link";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import DeleteProductButton from "../components/DeleteProductButton";
 import CreateProductForm from "../components/CreateProductForm";
@@ -26,24 +25,23 @@ export default async function AdminPage() {
 
   return (
     <>
-      <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-16">
+        <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold">
+            <h1 className="text-3xl font-bold text-white md:text-4xl">
               Panel de Administración
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="mt-1 text-gray-400">
               Gestiona los productos de Oferthis
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <SyncEbayButton />
             <LimpiarOfertasButton />
             <Link
               href="/"
-              className="text-sm text-center text-gray-600 hover:text-orange-500 transition"
+              className="text-center text-sm text-gray-300 transition hover:text-orange-500"
             >
               ← Volver a la web
             </Link>
@@ -51,29 +49,30 @@ export default async function AdminPage() {
         </div>
 
         <CreateProductForm />
-        
+
         <ImportAliExpressForm />
-        <div className="bg-white rounded-2xl border shadow-sm overflow-hidden mt-8">
+
+        <div className="rounded-2xl bg-white p-6 text-gray-900">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="border-b bg-gray-50">
               <tr>
-                <th className="text-left p-4 font-medium text-gray-600">ID</th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">ID</th>
+                <th className="p-4 text-left font-medium text-gray-600">
                   Producto
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">
                   Tienda
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">
                   Precio
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">
                   Descuento
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">
                   Estado
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                <th className="p-4 text-left font-medium text-gray-600">
                   Acciones
                 </th>
               </tr>
@@ -85,13 +84,13 @@ export default async function AdminPage() {
                   className="border-b last:border-0 hover:bg-gray-50"
                 >
                   <td className="p-4 text-gray-500">{p.id}</td>
-                  <td className="p-4 font-medium">{p.nombre}</td>
-                  <td className="p-4">{p.tienda}</td>
-                  <td className="p-4 text-orange-500 font-semibold">
+                  <td className="p-4 font-medium text-gray-900">{p.nombre}</td>
+                  <td className="p-4 text-gray-800">{p.tienda}</td>
+                  <td className="p-4 font-semibold text-orange-500">
                     {p.precio}
                   </td>
                   <td className="p-4">
-                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
+                    <span className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-600">
                       {p.descuento}
                     </span>
                   </td>
@@ -110,7 +109,7 @@ export default async function AdminPage() {
                     <div className="flex flex-wrap items-center gap-3">
                       <Link
                         href={`/producto/${p.id}`}
-                        className="text-orange-500 hover:underline text-sm"
+                        className="text-sm text-orange-500 hover:underline"
                       >
                         Ver
                       </Link>
@@ -137,7 +136,7 @@ export default async function AdminPage() {
           </table>
         </div>
 
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-gray-400">
           Total de productos: {productos.length}
         </p>
       </main>

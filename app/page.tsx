@@ -10,12 +10,48 @@ export const dynamic = "force-dynamic";
 const sql = neon(process.env.DATABASE_URL!);
 
 export default async function HomePage() {
-  const chollazos = await sql`
-    SELECT *
-    FROM productos
-    WHERE imagen IS NOT NULL
-    ORDER BY id DESC
-    LIMIT 6
+      const chollazos = await sql`
+    WITH base AS (
+      SELECT *
+      FROM productos
+      WHERE imagen IS NOT NULL
+        AND (disponible = true OR disponible IS NULL)
+        AND nombre NOT ILIKE '%prueba%'
+    ),
+    amazon_destacados AS (
+      SELECT *
+      FROM base
+      WHERE tienda ILIKE '%amazon%'
+      ORDER BY descuento DESC NULLS LAST
+      LIMIT 3
+    ),
+    resto AS (
+      SELECT * FROM base WHERE tienda NOT ILIKE '%amazon%'
+    ),
+    ranked_resto AS (
+      SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY categoria ORDER BY descuento DESC NULLS LAST) AS rank_categoria
+      FROM resto
+    ),
+    top_categoria_resto AS (
+      SELECT * FROM ranked_resto WHERE rank_categoria = 1
+    ),
+    limitado_tienda AS (
+      SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY tienda ORDER BY descuento DESC NULLS LAST) AS rank_tienda
+      FROM top_categoria_resto
+    ),
+    combinado AS (
+      SELECT id, nombre, tienda, precio, antes, descuento, categoria, imagen, url, valoracion, opiniones, entrega, etiqueta, disponible, ultima_actualizacion, historial_precios
+      FROM amazon_destacados
+      UNION ALL
+      SELECT id, nombre, tienda, precio, antes, descuento, categoria, imagen, url, valoracion, opiniones, entrega, etiqueta, disponible, ultima_actualizacion, historial_precios
+      FROM limitado_tienda WHERE rank_tienda <= 3
+    )
+    SELECT DISTINCT ON (id) *
+    FROM combinado
+    ORDER BY id, descuento DESC NULLS LAST
+    LIMIT 10
   `;
 
   const ebay = await sql`

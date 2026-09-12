@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import FavoriteButton from "./FavoriteButton";
 
@@ -57,17 +60,63 @@ export default function ProductCard({ product }: { product: Producto }) {
   const ficha = id ? `/producto/${id}` : url;
   const store = tienda ? tiendaStyle(tienda) : null;
 
+  const [cursor, setCursor] = useState({ x: 0, y: 0, on: false });
+
   return (
-    <article className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white text-gray-900 shadow-sm">
+    <article
+      className="product-glow relative flex h-full cursor-none flex-col overflow-hidden rounded-2xl bg-white text-gray-900 shadow-sm transition duration-200"
+      onMouseEnter={() => setCursor((c) => ({ ...c, on: true }))}
+      onMouseLeave={() => setCursor((c) => ({ ...c, on: false }))}
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        setCursor({
+          x: e.clientX - r.left,
+          y: e.clientY - r.top,
+          on: true,
+        });
+      }}
+    >
       <style>{`
         @keyframes oferthis-flotar {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-6px); }
         }
-        .oferthis-flotar {
-          animation: oferthis-flotar 1.4s ease-in-out infinite;
+        .oferthis-flotar { animation: oferthis-flotar 1.4s ease-in-out infinite; }
+        .product-glow:hover {
+          transform: translateY(-4px);
+          box-shadow:
+            0 0 12px #ff6a00,
+            0 0 28px rgba(255,106,0,.7),
+            0 0 48px rgba(255,106,0,.35);
+        }
+        @keyframes chispa {
+          0% { transform: translate(0,0) scale(1); opacity: 1; }
+          100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+        }
+        .chispa {
+          position: absolute;
+          width: 5px;
+          height: 5px;
+          border-radius: 99px;
+          background: #ffcc66;
+          box-shadow: 0 0 6px #ff6a00;
+          animation: chispa .55s ease-out infinite;
         }
       `}</style>
+
+      {cursor.on && (
+        <div
+          className="pointer-events-none absolute z-50"
+          style={{ left: cursor.x, top: cursor.y, transform: "translate(-50%, -70%)" }}
+        >
+          <span className="block text-xl leading-none drop-shadow-[0_0_8px_#ff6a00]">
+            🔥
+          </span>
+          <span className="chispa" style={{ left: 6, top: -2, ["--dx" as any]: "10px", ["--dy" as any]: "-14px" }} />
+          <span className="chispa" style={{ left: -4, top: 0, ["--dx" as any]: "-12px", ["--dy" as any]: "-16px", animationDelay: ".12s" }} />
+          <span className="chispa" style={{ left: 2, top: 4, ["--dx" as any]: "6px", ["--dy" as any]: "-18px", animationDelay: ".24s" }} />
+        </div>
+      )}
 
       <div className="relative h-[180px] w-full shrink-0 bg-white">
         {descuento > 0 && (
@@ -86,7 +135,7 @@ export default function ProductCard({ product }: { product: Producto }) {
           <FavoriteButton productId={id} />
         </div>
 
-        <Link href={ficha} className="block h-[180px] w-full">
+        <Link href={ficha} className="block h-[180px] w-full cursor-none">
           <img
             src={imagen}
             alt={nombre}
@@ -96,7 +145,7 @@ export default function ProductCard({ product }: { product: Producto }) {
       </div>
 
       <div className="flex flex-1 flex-col px-3 pb-3 pt-1">
-        <Link href={ficha}>
+        <Link href={ficha} className="cursor-none">
           <h3 className="line-clamp-2 min-h-10 text-[13px] font-semibold leading-snug hover:underline">
             {nombre}
           </h3>
@@ -118,7 +167,7 @@ export default function ProductCard({ product }: { product: Producto }) {
             href={url}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="block rounded-full bg-orange-500 py-2 text-center text-xs font-bold text-white hover:bg-orange-600"
+            className="block cursor-none rounded-full bg-orange-500 py-2 text-center text-xs font-bold text-white hover:bg-orange-600"
           >
             Ver oferta →
           </a>

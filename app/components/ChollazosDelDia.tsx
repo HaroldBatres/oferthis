@@ -2,7 +2,7 @@ import ProductCard from "./ProductCard";
 import Link from "next/link";
 
 export default function ChollazosDelDia({ products }: { products: any[] }) {
-  const list = (products || []).slice(0, 6);
+    const list = (products || []).slice(0, 10);
   if (!list.length) return null;
 
   return (
@@ -52,7 +52,7 @@ export default function ChollazosDelDia({ products }: { products: any[] }) {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {list.map((p, i) => (
             <ProductCard key={p.id ?? p.nombre ?? i} product={p} />
           ))}
