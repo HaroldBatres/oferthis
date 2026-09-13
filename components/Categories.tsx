@@ -20,6 +20,7 @@ export default function Categories() {
         .cat-icon {
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
         }
+
         .cat-icon:hover {
           transform: scale(1.12);
           border-color: #ff7a1a;
@@ -30,6 +31,7 @@ export default function Categories() {
             inset 0 0 10px rgba(255, 140, 0, 0.35);
           filter: drop-shadow(0 0 8px #ff9a00);
         }
+
         .cat-link:hover span:last-child {
           color: #ff9a3c;
           text-shadow: 0 0 8px rgba(255, 106, 0, 0.8);
@@ -38,7 +40,7 @@ export default function Categories() {
 
       <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row">
         <div className="flex-1 rounded-2xl border border-white/10 bg-[#0c1222] px-3 py-4">
-         <div className="grid grid-cols-4 gap-3 md:grid-cols-5">
+          <div className="grid grid-cols-4 gap-3 md:grid-cols-5">
             {cats.map((c) => (
               <Link
                 key={c.name}
@@ -56,22 +58,18 @@ export default function Categories() {
 
         <Link
           href="/buscar?q="
-          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0c1222] px-5 py-4 lg:w-72"
+          aria-label="Ver ofertas"
+          className="group relative flex min-h-40 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0c1222] lg:w-72"
         >
-          <div>
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 text-lg font-black text-white">
-              %
-            </div>
-            <p className="text-sm font-semibold text-white">
-              Las mejores ofertas de tus tiendas favoritas
-            </p>
-            <p className="mt-2 text-[11px] text-gray-400">
-              amazon · ebay · AliExpress
-            </p>
-          </div>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white">
-            →
-          </span>
+          <video
+            src="/videos/principal.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
         </Link>
       </div>
     </section>
