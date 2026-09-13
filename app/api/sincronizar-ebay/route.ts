@@ -71,33 +71,63 @@ async function getEbayItemImages(
 }
 
 const BUSQUEDAS = [
-  { q: "portatil", categoria: "Tecnología" },
-  { q: "smartphone", categoria: "Tecnología" },
-  { q: "auriculares bluetooth", categoria: "Tecnología" },
-  { q: "tablet", categoria: "Tecnología" },
-  { q: "smartwatch", categoria: "Tecnología" },
-  { q: "monitor", categoria: "Tecnología" },
+  { q: "portatil", categoria: "Tecnologia" },
+  { q: "smartphone", categoria: "Tecnologia" },
+  { q: "auriculares bluetooth", categoria: "Tecnologia" },
+  { q: "tablet", categoria: "Tecnologia" },
+  { q: "smartwatch", categoria: "Tecnologia" },
+  { q: "monitor", categoria: "Tecnologia" },
   { q: "robot aspirador", categoria: "Hogar" },
   { q: "aspiradora", categoria: "Hogar" },
   { q: "humidificador", categoria: "Hogar" },
   { q: "ventilador", categoria: "Hogar" },
+  { q: "lampara led", categoria: "Hogar" },
+  { q: "organizador hogar", categoria: "Hogar" },
   { q: "playstation", categoria: "Gaming" },
   { q: "xbox", categoria: "Gaming" },
   { q: "raton gaming", categoria: "Gaming" },
   { q: "teclado mecanico", categoria: "Gaming" },
   { q: "mando consola", categoria: "Gaming" },
+  { q: "silla gaming", categoria: "Gaming" },
   { q: "zapatillas running", categoria: "Deporte" },
   { q: "zapatillas deporte", categoria: "Deporte" },
   { q: "bicicleta", categoria: "Deporte" },
+  { q: "cinta de correr", categoria: "Deporte" },
+  { q: "mancuernas", categoria: "Deporte" },
   { q: "freidora aire", categoria: "Cocina" },
   { q: "cafetera", categoria: "Cocina" },
   { q: "batidora", categoria: "Cocina" },
+  { q: "olla a presion", categoria: "Cocina" },
+  { q: "vajilla", categoria: "Cocina" },
   { q: "zapatillas hombre", categoria: "Moda" },
   { q: "mochila", categoria: "Moda" },
+  { q: "chaqueta hombre", categoria: "Moda" },
+  { q: "bolso mujer", categoria: "Moda" },
+  { q: "gafas de sol", categoria: "Moda" },
   { q: "secador pelo", categoria: "Belleza" },
   { q: "plancha pelo", categoria: "Belleza" },
+  { q: "maquillaje", categoria: "Belleza" },
+  { q: "depiladora", categoria: "Belleza" },
   { q: "comedero perro", categoria: "Mascotas" },
   { q: "juguete gato", categoria: "Mascotas" },
+  { q: "arnes perro", categoria: "Mascotas" },
+  { q: "transportin mascota", categoria: "Mascotas" },
+  { q: "accesorios coche", categoria: "Automocion" },  { q: "accesorios coche", categoria: "Automocion" },
+  { q: "sensor presion neumaticos", categoria: "Automocion" },
+  { q: "luces led coche", categoria: "Automocion" },
+  { q: "cargador coche", categoria: "Automocion" },
+  { q: "alfombrillas coche", categoria: "Automocion" },
+  { q: "funda volante", categoria: "Automocion" },
+  { q: "camara marcha atras coche", categoria: "Automocion" },
+  { q: "soporte movil coche", categoria: "Automocion" },
+  { q: "taladro", categoria: "Herramientas" },
+  { q: "destornillador electrico", categoria: "Herramientas" },
+  { q: "caja herramientas", categoria: "Herramientas" },
+  { q: "llave inglesa", categoria: "Herramientas" },
+  { q: "sierra electrica", categoria: "Herramientas" },
+  { q: "amoladora", categoria: "Herramientas" },
+  { q: "nivel laser", categoria: "Herramientas" },
+  { q: "pistola calor", categoria: "Herramientas" },
 ];
 
 export async function GET() {
@@ -113,9 +143,9 @@ export async function GET() {
     const titulosVivos = new Set<string>();
 
     for (const busqueda of BUSQUEDAS) {
-      const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
+           const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
         busqueda.q
-      )}&limit=20`;
+      )}&limit=50`;
 
       const searchRes = await fetch(searchUrl, {
         headers: {

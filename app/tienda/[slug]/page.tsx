@@ -70,10 +70,14 @@ export default async function TiendaPage({ params, searchParams }: Props) {
   const slugLower = slug.toLowerCase();
   const nombreTienda = NOMBRES[slugLower] || slug;
 
-  let productos = (await sql`
-    SELECT * FROM productos
-    WHERE (disponible = true OR disponible IS NULL)
-      AND LOWER(tienda) = ${slugLower}
+     let productos = (await sql`
+    SELECT * FROM (
+      SELECT DISTINCT ON (nombre) *
+      FROM productos
+      WHERE (disponible = true OR disponible IS NULL)
+        AND LOWER(tienda) = ${slugLower}
+      ORDER BY nombre, id DESC
+    ) sub
     ORDER BY id DESC
   `) as any[];
 

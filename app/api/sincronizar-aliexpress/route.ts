@@ -21,14 +21,47 @@ const TRACKING_ID =
 const API_URL = "https://api-sg.aliexpress.com/sync";
 
 const BUSQUEDAS = [
-  { q: "auriculares bluetooth", categoria: "Tecnología" },
-  { q: "powerbank", categoria: "Tecnología" },
-  { q: "hub usb c", categoria: "Tecnología" },
+  { q: "auriculares bluetooth", categoria: "Tecnologia" },
+  { q: "powerbank", categoria: "Tecnologia" },
+  { q: "hub usb c", categoria: "Tecnologia" },
+  { q: "smartwatch", categoria: "Tecnologia" },
+  { q: "cargador movil", categoria: "Tecnologia" },
   { q: "aspiradora de mesa", categoria: "Hogar" },
-  { q: "freidora aire", categoria: "Cocina" },
-  { q: "smartwatch", categoria: "Tecnología" },
   { q: "organizador nevera", categoria: "Hogar" },
   { q: "lampara led escritorio", categoria: "Hogar" },
+  { q: "difusor aromas", categoria: "Hogar" },
+  { q: "silla gaming", categoria: "Gaming" },
+  { q: "teclado gaming", categoria: "Gaming" },
+  { q: "raton gaming", categoria: "Gaming" },
+  { q: "auriculares gaming", categoria: "Gaming" },
+  { q: "banda resistencia", categoria: "Deporte" },
+  { q: "esterilla yoga", categoria: "Deporte" },
+  { q: "botella deportiva", categoria: "Deporte" },
+  { q: "guantes gimnasio", categoria: "Deporte" },
+  { q: "freidora aire", categoria: "Cocina" },
+  { q: "termo cocina", categoria: "Cocina" },
+  { q: "set cuchillos cocina", categoria: "Cocina" },
+  { q: "bascula cocina", categoria: "Cocina" },
+  { q: "bolso mujer", categoria: "Moda" },
+  { q: "gafas de sol", categoria: "Moda" },
+  { q: "reloj mujer", categoria: "Moda" },
+  { q: "cinturon hombre", categoria: "Moda" },
+  { q: "plancha pelo", categoria: "Belleza" },
+  { q: "maquillaje set", categoria: "Belleza" },
+  { q: "crema facial", categoria: "Belleza" },
+  { q: "depiladora electrica", categoria: "Belleza" },
+  { q: "arnes perro", categoria: "Mascotas" },
+  { q: "juguete gato", categoria: "Mascotas" },
+  { q: "comedero automatico mascota", categoria: "Mascotas" },
+  { q: "cama para perro", categoria: "Mascotas" },
+  { q: "sensor presion neumaticos", categoria: "Automocion" },
+  { q: "luces led coche", categoria: "Automocion" },
+  { q: "organizador maletero", categoria: "Automocion" },
+  { q: "soporte movil coche", categoria: "Automocion" },
+  { q: "taladro inalambrico", categoria: "Herramientas" },
+  { q: "set destornilladores", categoria: "Herramientas" },
+  { q: "caja herramientas", categoria: "Herramientas" },
+  { q: "nivel laser", categoria: "Herramientas" },
 ];
 
 function sign(params: Record<string, string>) {
@@ -57,7 +90,7 @@ async function buscarAli(keywords: string) {
     format: "json",
     keywords,
     page_no: "1",
-    page_size: "8",
+    page_size: "20",
     sort: "LAST_VOLUME_DESC",
     target_currency: "EUR",
     target_language: "ES",
@@ -97,8 +130,9 @@ export async function GET() {
     let actualizados = 0;
 
     for (const b of BUSQUEDAS) {
-      const data = await buscarAli(b.q);
-      const items = extraerProductos(data).slice(0, 2);
+            const data = await buscarAli(b.q);
+      const items = extraerProductos(data).slice(0, 20);
+      await new Promise((r) => setTimeout(r, 350));
 
       for (const item of items) {
         const nombre = String(item.product_title || item.title || "").slice(0, 180);

@@ -12,6 +12,29 @@ function enlaceAfiliado(url: string) {
   return `${url}${sep}mkcid=1&mkrid=1185-53479-19255-0&siteid=186&campid=${CAMPID}&toolid=10001&mkevt=1`;
 }
 
+const PALABRAS_CATEGORIA: { categoria: string; palabras: string[] }[] = [
+  { categoria: "Tecnologia", palabras: ["portatil", "laptop", "smartphone", "telefono", "auricular", "tablet", "smartwatch", "monitor", "teclado", "raton", "webcam", "cargador", "adaptador", "usb", "bateria", "power bank"] },
+  { categoria: "Hogar", palabras: ["aspiradora", "robot aspirador", "humidificador", "ventilador", "lampara", "aire acondicionado", "organizador", "almohada", "cortina", "alfombra"] },
+  { categoria: "Gaming", palabras: ["gaming", "consola", "playstation", "xbox", "nintendo", "mando", "joystick", "teclado mecanico"] },
+  { categoria: "Deporte", palabras: ["running", "bicicleta", "fitness", "cinta de correr", "yoga", "pesa", "mancuerna", "deportivo", "deportiva"] },
+  { categoria: "Cocina", palabras: ["freidora", "cafetera", "batidora", "sarten", "olla", "cuchillo cocina", "vajilla"] },
+  { categoria: "Moda", palabras: ["zapatilla", "camiseta", "pantalon", "mochila", "bolso", "vestido", "chaqueta", "gafas de sol"] },
+  { categoria: "Belleza", palabras: ["secador", "plancha de pelo", "maquillaje", "crema facial", "perfume", "depiladora"] },
+  { categoria: "Mascotas", palabras: ["perro", "gato", "mascota", "comedero", "correa", "arnes"] },
+  { categoria: "Automocion", palabras: ["coche", "moto", "motocicleta", "neumatico", "tpms", "vehiculo", "carenado", "parabrisas"] },
+  { categoria: "Herramientas", palabras: ["destornillador", "taladro", "llave inglesa", "tornillo", "brico", "herramienta"] },
+];
+
+function detectarCategoria(nombre: string): string {
+  const texto = nombre.toLowerCase();
+  for (const grupo of PALABRAS_CATEGORIA) {
+    if (grupo.palabras.some((p) => texto.includes(p))) {
+      return grupo.categoria;
+    }
+  }
+  return "Hogar";
+}
+
 export async function GET() {
   try {
     const ofertas = await searchEbayOfertas("oferta", 80);
@@ -57,7 +80,7 @@ export async function GET() {
           ${o.precio},
           ${o.antes || o.precio},
           ${o.descuento || ""},
-          ${"Ofertas"},
+          ${detectarCategoria(o.title)},
           ${o.imagen || ""},
           ${url},
           ${o.descripcion || ""},

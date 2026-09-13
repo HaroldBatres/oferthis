@@ -32,23 +32,25 @@ export default function ImportAliExpressForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-8 bg-orange-50 border border-orange-100 rounded-2xl p-6"
+      className="mb-8 rounded-2xl border border-orange-200 bg-orange-50 p-6 text-gray-900"
     >
-      <h2 className="text-xl font-bold mb-2">Importar de AliExpress</h2>
-      <p className="text-sm text-gray-600 mb-4">
+      <h2 className="mb-2 text-xl font-bold text-gray-900">
+        Importar de AliExpress
+      </h2>
+      <p className="mb-4 text-sm text-gray-700">
         Una búsqueda concreta, o el catálogo (10 búsquedas, como eBay).
       </p>
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <input
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
-          className="flex-1 border rounded-xl px-4 py-3"
+          className="flex-1 rounded-xl border-2 border-gray-800 bg-white px-4 py-3 font-medium text-black placeholder:text-gray-500"
           placeholder="Ej: auriculares"
         />
         <button
           type="submit"
           disabled={loading}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold disabled:opacity-50"
+          className="rounded-xl bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600 disabled:opacity-50"
         >
           {loading ? "Importando..." : "Importar búsqueda"}
         </button>
@@ -72,11 +74,11 @@ export default function ImportAliExpressForm() {
               setMensaje(data.error || "Error al importar");
             }
           }}
-          className="bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold disabled:opacity-50"
+          className="rounded-xl bg-gray-900 px-6 py-3 font-bold text-white hover:bg-black disabled:opacity-50"
         >
           Importar catálogo
         </button>
-                <button
+        <button
           type="button"
           disabled={loading}
           onClick={async () => {
@@ -93,12 +95,14 @@ export default function ImportAliExpressForm() {
                 : data.error || "Error"
             );
           }}
-          className="bg-white border px-6 py-3 rounded-xl font-bold"
+          className="rounded-xl border-2 border-gray-900 bg-white px-6 py-3 font-bold text-gray-900 hover:bg-gray-100 disabled:opacity-50"
         >
           Actualizar fotos existentes
         </button>
       </div>
-      {mensaje && <p className="mt-3 text-sm font-medium">{mensaje}</p>}
+      {mensaje && (
+        <p className="mt-3 text-sm font-medium text-gray-900">{mensaje}</p>
+      )}
     </form>
   );
 }

@@ -9,6 +9,8 @@ const cats = [
   { name: "Moda", icon: "👗", q: "moda" },
   { name: "Belleza", icon: "💄", q: "belleza" },
   { name: "Mascotas", icon: "🐾", q: "mascotas" },
+  { name: "Coche", icon: "🚗", q: "automocion" },
+  { name: "Bricolaje", icon: "🛠️", q: "herramientas" },
 ];
 
 export default function Categories() {
@@ -36,7 +38,7 @@ export default function Categories() {
 
       <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row">
         <div className="flex-1 rounded-2xl border border-white/10 bg-[#0c1222] px-3 py-4">
-          <div className="grid grid-cols-4 gap-3 md:grid-cols-8">
+         <div className="grid grid-cols-4 gap-3 md:grid-cols-5">
             {cats.map((c) => (
               <Link
                 key={c.name}
