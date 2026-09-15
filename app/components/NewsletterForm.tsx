@@ -31,34 +31,36 @@ export default function NewsletterForm() {
   };
 
   return (
-    <div className="bg-orange-50 rounded-2xl p-8 border border-orange-100">
-      <h3 className="text-2xl font-bold mb-2 text-gray-900">
-        📬 {t("title")}
-      </h3>
-      <p className="text-gray-600 mb-6">{t("subtitle")}</p>
+    <div className="max-w-3xl mx-auto px-4 sm:px-0">
+      <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
+        <h3 className="text-lg font-bold mb-1 text-gray-900">
+          📬 {t("title")}
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">{t("subtitle")}</p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={t("emailPlaceholder")}
-          required
-          className="flex-1 border rounded-xl px-4 py-3 text-gray-900"
-          style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50"
-        >
-          {loading ? t("sending") : t("submit")}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("emailPlaceholder")}
+            required
+            className="flex-1 border rounded-xl px-4 py-2 text-sm text-gray-900"
+            style={{ color: "#111827", WebkitTextFillColor: "#111827" }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-bold text-sm transition disabled:opacity-50"
+          >
+            {loading ? t("sending") : t("submit")}
+          </button>
+        </form>
 
-      {mensaje && (
-        <p className="mt-4 text-sm font-medium text-green-600">{mensaje}</p>
-      )}
+        {mensaje && (
+          <p className="mt-4 text-sm font-medium text-green-600">{mensaje}</p>
+        )}
+      </div>
     </div>
   );
 }

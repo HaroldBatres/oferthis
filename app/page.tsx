@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
 import ChollazosDelDia from "@/app/components/ChollazosDelDia";
 import StoreSection from "@/app/components/StoreSection";
+import NewsletterForm from "@/app/components/NewsletterForm";
 import Benefits from "@/components/Benefits";
 
 export const dynamic = "force-dynamic";
@@ -142,7 +143,8 @@ export default async function HomePage() {
         href="/tienda/amazon"
         products={amazon as any[]}
       />
-      <Benefits />
+        <Benefits />
+      <NewsletterForm />
     </main>
   );
 }

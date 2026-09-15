@@ -26,19 +26,32 @@ export default function ChollazosDelDia({ products }: { products: any[] }) {
             filter: drop-shadow(0 0 10px #ffcc00) drop-shadow(0 0 20px #ff6a00);
           }
         }
-        .llama-arder {
+                .llama-arder {
           display: inline-block;
           transform-origin: bottom center;
           animation: llama-arder 0.7s ease-in-out infinite;
+        }
+
+        @keyframes texto-viral {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        .texto-viral {
+          background: linear-gradient(90deg, #ffffff 0%, #ffcc00 25%, #ff6a00 50%, #ffcc00 75%, #ffffff 100%);
+          background-size: 250% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: texto-viral 2.5s linear infinite;
         }
       `}</style>
 
       <div className="mx-auto max-w-7xl">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-            <h2 className="flex items-center gap-2 text-2xl font-extrabold text-white">
+                                   <h2 className="flex items-center gap-2 text-2xl font-extrabold text-white">
               <span className="llama-arder text-3xl">🔥</span>
-              Chollazos del día
+              <span className="texto-viral">Lo mejor de Oferthis hoy</span>
             </h2>
             <p className="mt-1 text-sm text-gray-400">
               Los productos más buscados, al mejor precio.

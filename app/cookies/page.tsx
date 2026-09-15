@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata = {
@@ -6,11 +5,10 @@ export const metadata = {
 };
 
 export default function CookiesPage() {
-  return (
+    return (
     <>
-      <Header />
-      <main className="max-w-3xl mx-auto px-4 py-12 text-gray-900">
-        <h1 className="text-3xl font-bold mb-6">Política de cookies</h1>
+      <main className="max-w-3xl mx-auto px-4 py-12 text-gray-200">
+        <h1 className="text-3xl font-bold mb-6 text-white">Política de cookies</h1>
         <div className="space-y-4 text-sm leading-relaxed">
           <p>
             Usamos cookies y almacenamiento local necesarios para el
