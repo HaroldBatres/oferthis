@@ -9,8 +9,9 @@ const cats = [
   { name: "Moda", icon: "👗", q: "moda" },
   { name: "Belleza", icon: "💄", q: "belleza" },
   { name: "Mascotas", icon: "🐾", q: "mascotas" },
-  { name: "Coche", icon: "🚗", q: "automocion" },
   { name: "Bricolaje", icon: "🛠️", q: "herramientas" },
+  { name: "Coche", icon: "🚗", q: "automocion" },
+  { name: "Libros", icon: "📚", q: "libros" },
 ];
 
 export default function Categories() {

@@ -22,6 +22,7 @@ const NOMBRES: Record<string, string> = {
   ebay: "eBay",
   aliexpress: "AliExpress",
   shein: "SHEIN",
+    casadellibro: "Casa del Libro",
 };
 
 function parsePrecio(p: string): number {
@@ -46,8 +47,11 @@ function catKey(nombre: string): string {
     Moda: "cat_moda",
     Belleza: "cat_belleza",
     Mascotas: "cat_mascotas",
+    Automocion: "cat_automocion",
+    Herramientas: "cat_herramientas",
+    Libros: "cat_libros",
   };
-  return map[nombre] || "";
+  return map[nombre] || nombre;
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -221,14 +225,18 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                         href={`/producto/${p.id}`}
                         className="group bg-white rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden"
                       >
-                        <div className="relative">
+                                              <div className={`relative ${cat === "Libros" ? "bg-white flex items-center justify-center h-40" : ""}`}>
                           <Image
                             src={p.imagen}
                             alt={p.nombre}
                             width={240}
                             height={240}
                             unoptimized
-                            className="w-full h-40 object-cover group-hover:scale-105 transition duration-300"
+                            className={
+                              cat === "Libros"
+                                ? "max-h-40 w-auto object-contain group-hover:scale-105 transition duration-300"
+                                : "w-full h-40 object-cover group-hover:scale-105 transition duration-300"
+                            }
                           />
                           <DiscountBadge descuento={p.descuento} />
                           <div className="absolute top-2 right-2">

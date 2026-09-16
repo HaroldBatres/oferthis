@@ -31,8 +31,11 @@
     "cat_deporte": "Deporte",
     "cat_cocina": "Cocina",
     "cat_moda": "Moda",
-    "cat_belleza": "Belleza",
-    "cat_mascotas": "Mascotas"
+        "cat_belleza": "Belleza",
+    "cat_mascotas": "Mascotas",
+    "cat_automocion": "Coche",
+    "cat_herramientas": "Bricolaje",
+    "cat_libros": "Libros"
   },
   "Favorites": {
     "title": "Mis Favoritos",

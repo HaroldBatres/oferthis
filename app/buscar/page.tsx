@@ -92,15 +92,19 @@ export default async function BuscarPage({ searchParams }: Props) {
               href={`/producto/${p.id}`}
               className="buscar-card group rounded-xl border border-gray-100 bg-white text-gray-900 shadow-sm"
             >
-              <div className="foto-zoom relative h-40">
-                <div className="foto-zoom-inner">
+                            <div className={`foto-zoom relative h-40 ${p.categoria === "Libros" ? "bg-white flex items-center justify-center" : ""}`}>
+                <div className={p.categoria === "Libros" ? "flex h-full w-full items-center justify-center" : "foto-zoom-inner"}>
                   <Image
                     src={p.imagen}
                     alt={p.nombre}
                     width={300}
                     height={300}
                     unoptimized
-                    className="h-40 w-full object-cover"
+                    className={
+                      p.categoria === "Libros"
+                        ? "max-h-40 w-auto object-contain"
+                        : "h-40 w-full object-cover"
+                    }
                   />
                 </div>
                 <DiscountBadge descuento={p.descuento || ""} />

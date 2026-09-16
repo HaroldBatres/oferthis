@@ -65,9 +65,10 @@ export default async function HomePage() {
       WHEN 'Deporte' THEN 6
       WHEN 'Automocion' THEN 7
       WHEN 'Herramientas' THEN 8
-      WHEN 'Mascotas' THEN 9
+            WHEN 'Mascotas' THEN 9
       WHEN 'Gaming' THEN 10
-      ELSE 11
+      WHEN 'Libros' THEN 11
+      ELSE 12
     END
   `;
 

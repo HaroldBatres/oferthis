@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.ssl-images-amazon.com", pathname: "/**" },
       { protocol: "https", hostname: "i.ebayimg.com", pathname: "/**" },
       { protocol: "https", hostname: "**.ebayimg.com", pathname: "/**" },
+      { protocol: "https", hostname: "imagessl.casadellibro.com", pathname: "/**" },
     ],
   },
 };

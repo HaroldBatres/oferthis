@@ -34,22 +34,26 @@ export default function ProductImageGallery({ imagenes, alt }: Props) {
     return Array.from(new Set(n));
   }, [imagenes]);
 
-  const [activa, setActiva] = useState(0);
+   const [activa, setActiva] = useState(0);
+  const [fallo, setFallo] = useState(false);
   const actual = fotos[activa] || fotos[0];
 
-  if (!actual) {
+  if (!actual || fallo) {
     return (
-      <div className="w-full aspect-square bg-gray-100 rounded-2xl" />
+      <div className="w-full aspect-square bg-gray-100 rounded-2xl flex items-center justify-center">
+        <span className="text-gray-400 text-sm">Imagen no disponible</span>
+      </div>
     );
   }
 
   return (
     <div>
       <div className="bg-white rounded-2xl border overflow-hidden">
-        <img
+         <img
           src={actual}
           alt={alt}
           referrerPolicy="no-referrer"
+          onError={() => setFallo(true)}
           className="w-full h-auto max-h-[520px] object-contain bg-white"
         />
       </div>
