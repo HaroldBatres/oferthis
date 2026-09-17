@@ -239,12 +239,12 @@ export default async function ProductoPage({ params }: Props) {
                   href={`/producto/${item.id}`}
                   className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition overflow-hidden"
                 >
-                  <Image
-                    src={item.imagen}
-                    alt={item.nombre}
-                    width={300}
-                    height={300}
-                    className="w-full h-44 object-cover"
+                                      <Image
+                      src={item.imagen}
+                      alt={item.nombre}
+                      width={300}
+                      height={300}
+                      unoptimized
                   />
                   <div className="p-4">
                     <h3 className="font-semibold text-sm line-clamp-2 text-gray-900">

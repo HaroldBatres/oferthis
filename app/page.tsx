@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const sql = neon(process.env.DATABASE_URL!);
 
 export default async function HomePage() {
-      const chollazos = await sql`
+  const chollazos = await sql`
     WITH base AS (
       SELECT *
       FROM productos
@@ -26,7 +26,7 @@ export default async function HomePage() {
       ORDER BY descuento DESC NULLS LAST
       LIMIT 3
     ),
-        resto AS (
+    resto AS (
       SELECT * FROM base WHERE tienda NOT ILIKE '%amazon%'
     ),
     ranked_resto AS (
@@ -55,7 +55,7 @@ export default async function HomePage() {
     LIMIT 10
   `;
 
-     const ordenCategoria = `
+  const ordenCategoria = `
     CASE categoria
       WHEN 'Moda' THEN 1
       WHEN 'Tecnologia' THEN 2
@@ -65,7 +65,7 @@ export default async function HomePage() {
       WHEN 'Deporte' THEN 6
       WHEN 'Automocion' THEN 7
       WHEN 'Herramientas' THEN 8
-            WHEN 'Mascotas' THEN 9
+      WHEN 'Mascotas' THEN 9
       WHEN 'Gaming' THEN 10
       WHEN 'Libros' THEN 11
       ELSE 12
@@ -114,13 +114,48 @@ export default async function HomePage() {
     WHERE rank_categoria = 1
     ORDER BY orden_demanda
     LIMIT 8
-  `;  
+  `;
 
   const amazon = await sql`
     SELECT DISTINCT ON (nombre) *
     FROM productos
     WHERE tienda ILIKE '%amazon%'
     ORDER BY nombre
+    LIMIT 8
+  `;
+
+  const libros = await sql`
+    SELECT DISTINCT ON (nombre) *
+    FROM productos
+    WHERE (disponible = true OR disponible IS NULL)
+      AND imagen IS NOT NULL
+      AND tienda ILIKE '%casadellibro%'
+      AND (
+        autor ILIKE '%Proctor%'
+        OR autor ILIKE '%Tracy%'
+        OR autor ILIKE '%Robbins%'
+        OR autor ILIKE '%Rohn%'
+        OR autor ILIKE '%Burchard%'
+        OR autor ILIKE '%Hill%'
+        OR autor ILIKE '%Sharma%'
+        OR autor ILIKE '%Ferriss%'
+        OR autor ILIKE '%Kiyosaki%'
+        OR autor ILIKE '%Hicks%'
+        OR autor ILIKE '%Byrne%'
+        OR autor ILIKE '%Canfield%'
+        OR autor ILIKE '%Bourbeau%'
+        OR autor ILIKE '%Orihuela%'
+        OR autor ILIKE '%Bradshaw%'
+        OR nombre ILIKE '%Kiyosaki%'
+        OR nombre ILIKE '%Napoleon Hill%'
+        OR nombre ILIKE '%Robin Sharma%'
+        OR nombre ILIKE '%Tony Robbins%'
+        OR nombre ILIKE '%Brian Tracy%'
+        OR nombre ILIKE '%padre rico%'
+        OR nombre ILIKE '%monje que vendio%'
+        OR nombre ILIKE '%el secreto%'
+      )
+    ORDER BY nombre, id DESC
     LIMIT 8
   `;
 
@@ -144,7 +179,12 @@ export default async function HomePage() {
         href="/tienda/amazon"
         products={amazon as any[]}
       />
-        <Benefits />
+      <StoreSection
+        title="Ofertas de Casa del Libro"
+        href="/buscar?q=libros"
+        products={libros as any[]}
+      />
+      <Benefits />
       <NewsletterForm />
     </main>
   );

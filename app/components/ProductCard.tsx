@@ -30,6 +30,9 @@ function tiendaStyle(tienda: string) {
   if (t.includes("ali")) {
     return { label: "AliExpress", className: "border-[#e62e04] text-[#e62e04]" };
   }
+  if (t.includes("casa")) {
+    return { label: "Casa del Libro", className: "border-[#9b1b1e] text-[#9b1b1e]" };
+  }
   if (t.includes("shein")) {
     return { label: "SHEIN", className: "border-[#7b2cbf] text-[#7b2cbf]" };
   }
@@ -89,6 +92,12 @@ export default function ProductCard({ product }: { product: Producto }) {
             0 0 28px rgba(255,106,0,.7),
             0 0 48px rgba(255,106,0,.35);
         }
+        .product-glow .foto-prod-img {
+          transition: transform 0.35s ease;
+        }
+        .product-glow:hover .foto-prod-img {
+          transform: scale(1.16);
+        }
         @keyframes chispa {
           0% { transform: translate(0,0) scale(1); opacity: 1; }
           100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
@@ -118,7 +127,7 @@ export default function ProductCard({ product }: { product: Producto }) {
         </div>
       )}
 
-      <div className="relative h-[180px] w-full shrink-0 bg-white">
+      <div className="relative h-[180px] w-full shrink-0 overflow-hidden bg-white">
         {descuento > 0 && (
           <span className="oferthis-flotar pointer-events-none absolute left-2 top-2 z-30 rounded-md bg-orange-500 px-2 py-1 text-xs font-extrabold text-white shadow-md">
             -{descuento}%
@@ -135,11 +144,11 @@ export default function ProductCard({ product }: { product: Producto }) {
           <FavoriteButton productId={id} />
         </div>
 
-        <Link href={ficha} className="block h-[180px] w-full cursor-none">
+        <Link href={ficha} className="block h-[180px] w-full cursor-none overflow-hidden">
           <img
             src={imagen}
             alt={nombre}
-            className="h-[180px] w-full object-contain p-3"
+            className="foto-prod-img h-[180px] w-full object-contain p-3"
           />
         </Link>
       </div>
