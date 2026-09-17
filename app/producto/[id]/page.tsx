@@ -105,12 +105,11 @@ export default async function ProductoPage({ params }: Props) {
           </div>
 
           <div className="order-1 lg:order-2 min-w-0">
-            <ProductImageGallery
-              imagenes={
-                Array.isArray(producto.imagenes) && producto.imagenes.length > 0
-                  ? producto.imagenes
-                  : producto.imagen
-              }
+                    <ProductImageGallery
+              imagenes={[
+                producto.imagen,
+                ...(Array.isArray(producto.imagenes) ? producto.imagenes : []),
+              ].filter((foto, i, arr) => foto && arr.indexOf(foto) === i)}
               alt={titulo}
             />
           </div>
