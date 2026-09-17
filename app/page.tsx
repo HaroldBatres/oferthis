@@ -6,12 +6,30 @@ import StoreSection from "@/app/components/StoreSection";
 import NewsletterForm from "@/app/components/NewsletterForm";
 import Benefits from "@/components/Benefits";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const sql = neon(process.env.DATABASE_URL!);
 
 export default async function HomePage() {
-  const chollazos = await sql`
+  const ordenCategoria = `
+    CASE categoria
+      WHEN 'Moda' THEN 1
+      WHEN 'Tecnologia' THEN 2
+      WHEN 'Hogar' THEN 3
+      WHEN 'Cocina' THEN 4
+      WHEN 'Belleza' THEN 5
+      WHEN 'Deporte' THEN 6
+      WHEN 'Automocion' THEN 7
+      WHEN 'Herramientas' THEN 8
+      WHEN 'Mascotas' THEN 9
+      WHEN 'Gaming' THEN 10
+      WHEN 'Libros' THEN 11
+      ELSE 12
+    END
+  `;
+
+  const [chollazos, ebay, aliexpress, amazon, libros] = await Promise.all([
+    sql`
     WITH base AS (
       SELECT *
       FROM productos
@@ -53,26 +71,8 @@ export default async function HomePage() {
     FROM combinado
     ORDER BY descuento DESC NULLS LAST
     LIMIT 10
-  `;
-
-  const ordenCategoria = `
-    CASE categoria
-      WHEN 'Moda' THEN 1
-      WHEN 'Tecnologia' THEN 2
-      WHEN 'Hogar' THEN 3
-      WHEN 'Cocina' THEN 4
-      WHEN 'Belleza' THEN 5
-      WHEN 'Deporte' THEN 6
-      WHEN 'Automocion' THEN 7
-      WHEN 'Herramientas' THEN 8
-      WHEN 'Mascotas' THEN 9
-      WHEN 'Gaming' THEN 10
-      WHEN 'Libros' THEN 11
-      ELSE 12
-    END
-  `;
-
-  const ebay = await sql`
+  `,
+    sql`
     WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
@@ -92,9 +92,8 @@ export default async function HomePage() {
     WHERE rank_categoria = 1
     ORDER BY orden_demanda
     LIMIT 8
-  `;
-
-  const aliexpress = await sql`
+  `,
+    sql`
     WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
@@ -114,17 +113,15 @@ export default async function HomePage() {
     WHERE rank_categoria = 1
     ORDER BY orden_demanda
     LIMIT 8
-  `;
-
-  const amazon = await sql`
+  `,
+    sql`
     SELECT DISTINCT ON (nombre) *
     FROM productos
     WHERE tienda ILIKE '%amazon%'
     ORDER BY nombre
     LIMIT 8
-  `;
-
-  const libros = await sql`
+  `,
+    sql`
     SELECT DISTINCT ON (nombre) *
     FROM productos
     WHERE (disponible = true OR disponible IS NULL)
@@ -157,7 +154,8 @@ export default async function HomePage() {
       )
     ORDER BY nombre, id DESC
     LIMIT 8
-  `;
+  `,
+  ]);
 
   return (
     <main className="min-h-screen bg-[#070b16]">
