@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   robots: { index: true, follow: true },
+  other: {
+    "mitgo-verification": "7b43826c-0f34-4740-a77b-06ea5d85b859",
+  },
 };
 
 export default async function RootLayout({

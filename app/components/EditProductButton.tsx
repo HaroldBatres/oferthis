@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Producto = {
   id: number;
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function EditProductButton({ producto }: Props) {
+  const [mounted, setMounted] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({
@@ -33,6 +35,10 @@ export default function EditProductButton({ producto }: Props) {
     url: producto.url || "",
     etiqueta: producto.etiqueta || "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function actualizarCampo(campo: string, valor: string) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -63,68 +69,73 @@ export default function EditProductButton({ producto }: Props) {
     }
   }
 
-  if (!abierto) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="text-sm text-blue-600 hover:underline ml-2"
+        className="ml-2 text-sm text-blue-600 hover:underline"
       >
         Editar
       </button>
-    );
-  }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
-        <h3 className="text-xl font-bold mb-4">Editar producto #{producto.id}</h3>
+      {mounted &&
+        abierto &&
+        createPortal(
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
+            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 text-gray-900 shadow-xl">
+              <h3 className="mb-4 text-xl font-bold">
+                Editar producto #{producto.id}
+              </h3>
 
-        <form onSubmit={handleGuardar} className="space-y-3">
-          {(
-            [
-              ["nombre", "Nombre"],
-              ["tienda", "Tienda"],
-              ["precio", "Precio"],
-              ["antes", "Precio anterior"],
-              ["descuento", "Descuento"],
-              ["categoria", "Categoría"],
-              ["imagen", "URL imagen"],
-              ["url", "URL afiliado (Comprar)"],
-              ["etiqueta", "Etiqueta"],
-            ] as const
-          ).map(([campo, label]) => (
-            <div key={campo}>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                {label}
-              </label>
-              <input
-                type="text"
-                value={form[campo]}
-                onChange={(e) => actualizarCampo(campo, e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-              />
+              <form onSubmit={handleGuardar} className="space-y-3">
+                {(
+                  [
+                    ["nombre", "Nombre"],
+                    ["tienda", "Tienda"],
+                    ["precio", "Precio"],
+                    ["antes", "Precio anterior"],
+                    ["descuento", "Descuento"],
+                    ["categoria", "Categoría"],
+                    ["imagen", "URL imagen"],
+                    ["url", "URL afiliado (Comprar)"],
+                    ["etiqueta", "Etiqueta"],
+                  ] as const
+                ).map(([campo, label]) => (
+                  <div key={campo}>
+                    <label className="mb-1 block text-sm font-medium text-gray-600">
+                      {label}
+                    </label>
+                    <input
+                      type="text"
+                      value={form[campo]}
+                      onChange={(e) => actualizarCampo(campo, e.target.value)}
+                      className="w-full rounded-lg border px-3 py-2 text-sm text-black"
+                    />
+                  </div>
+                ))}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={guardando}
+                    className="flex-1 rounded-xl bg-orange-500 py-2.5 font-bold text-white hover:bg-orange-600 disabled:opacity-50"
+                  >
+                    {guardando ? "Guardando..." : "Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAbierto(false)}
+                    className="rounded-xl border px-4 py-2.5 text-sm"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             </div>
-          ))}
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={guardando}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl disabled:opacity-50"
-            >
-              {guardando ? "Guardando..." : "Guardar"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAbierto(false)}
-              className="px-4 py-2.5 border rounded-xl text-sm"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

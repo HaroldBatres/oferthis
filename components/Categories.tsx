@@ -41,7 +41,7 @@ export default function Categories() {
 
       <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row">
         <div className="flex-1 rounded-2xl border border-white/10 bg-[#0c1222] px-3 py-4">
-          <div className="grid grid-cols-4 gap-3 md:grid-cols-5">
+            <div className="grid grid-cols-6 gap-3">
             {cats.map((c) => (
               <Link
                 key={c.name}
@@ -69,7 +69,7 @@ export default function Categories() {
             muted
             playsInline
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-105"
           />
         </Link>
       </div>

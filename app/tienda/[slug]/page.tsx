@@ -1,9 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import Footer from "@/components/Footer";
-import FavoriteButton from "../../components/FavoriteButton";
-import DiscountBadge from "../../components/DiscountBadge";
+import ProductCard from "../../components/ProductCard";
 import { sql } from "../../lib/db";
 
 type Props = {
@@ -22,7 +20,7 @@ const NOMBRES: Record<string, string> = {
   ebay: "eBay",
   aliexpress: "AliExpress",
   shein: "SHEIN",
-    casadellibro: "Casa del Libro",
+  casadellibro: "Casa del Libro",
 };
 
 function parsePrecio(p: string): number {
@@ -74,7 +72,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
   const slugLower = slug.toLowerCase();
   const nombreTienda = NOMBRES[slugLower] || slug;
 
-     let productos = (await sql`
+  let productos = (await sql`
     SELECT * FROM (
       SELECT DISTINCT ON (nombre) *
       FROM productos
@@ -133,26 +131,26 @@ export default async function TiendaPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-16">
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-16">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-gray-600 hover:text-orange-500"
+          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-orange-500"
         >
           ← {tCommon("backToOffers")}
         </Link>
 
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl">
           {t("offersOf")} <span className="text-orange-500">{nombreTienda}</span>
         </h1>
-        <p className="text-gray-500 mb-6">
+        <p className="mb-6 text-gray-400">
           {productos.length}{" "}
           {productos.length === 1 ? t("product") : t("products")}
         </p>
 
-                <form
+        <form
           method="get"
           action={base}
-          className="mb-10 flex flex-col md:flex-row flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)]"
+          className="mb-10 flex flex-col flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)] md:flex-row"
         >
           <input
             type="search"
@@ -207,7 +205,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
         </form>
 
         {productos.length === 0 ? (
-          <p className="text-gray-500">{t("empty")}</p>
+          <p className="text-gray-400">{t("empty")}</p>
         ) : (
           <div className="space-y-12">
             {categorias.map((cat) => {
@@ -218,45 +216,9 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                   <h2 className="mb-4 border-b border-white/20 pb-2 text-xl font-semibold text-white">
                     {titulo}
                   </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {porCategoria[cat].map((p: any) => (
-                      <Link
-                        key={p.id}
-                        href={`/producto/${p.id}`}
-                        className="group bg-white rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden"
-                      >
-                                              <div className={`relative ${cat === "Libros" ? "bg-white flex items-center justify-center h-40" : ""}`}>
-                          <Image
-                            src={p.imagen}
-                            alt={p.nombre}
-                            width={240}
-                            height={240}
-                            unoptimized
-                            className={
-                              cat === "Libros"
-                                ? "max-h-40 w-auto object-contain group-hover:scale-105 transition duration-300"
-                                : "w-full h-40 object-cover group-hover:scale-105 transition duration-300"
-                            }
-                          />
-                          <DiscountBadge descuento={p.descuento} />
-                          <div className="absolute top-2 right-2">
-                            <FavoriteButton productId={p.id} />
-                          </div>
-                        </div>
-                        <div className="p-3">
-                                  <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-orange-500">
-                            {p.nombre}
-                          </h3>
-                              <p className="mt-1 font-bold text-orange-600">
-                            {p.precio}
-                          </p>
-                          {p.antes && p.antes !== p.precio && (
-                            <p className="text-xs text-gray-400 line-through">
-                              {p.antes}
-                            </p>
-                          )}
-                        </div>
-                      </Link>
+                      <ProductCard key={p.id} product={p} />
                     ))}
                   </div>
                 </div>
