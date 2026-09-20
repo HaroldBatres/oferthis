@@ -6,6 +6,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import CookieBanner from "./components/CookieBanner";
 import Header from "@/components/Header";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +61,8 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            {children}
+            {children} 
+            <Analytics />
             <CookieBanner />
           </NextIntlClientProvider>
         </ClerkProvider>
