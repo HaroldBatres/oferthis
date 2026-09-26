@@ -4,6 +4,15 @@ import { sql } from "../../lib/db";
 import { searchAliExpress } from "../../services/aliexpress";
 
 const CATALOGO = [
+  "sudadera hombre",
+  "sudadera mujer",
+  "hoodie",
+  "abrigo hombre",
+  "abrigo mujer",
+  "chaqueta otoño",
+  "jersey punto",
+  "cazadora",
+  "plumifero",
   "auriculares",
   "smartwatch",
   "freidora aire",
@@ -199,4 +208,4 @@ export async function POST(request: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: "Error al importar" }, { status: 500 });
   }
-}
+} 

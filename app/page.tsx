@@ -10,168 +10,229 @@ export const revalidate = 60;
 
 const sql = neon(process.env.DATABASE_URL!);
 
+function mesMadrid() {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Madrid",
+      month: "numeric",
+    }).format(new Date())
+  );
+}
+
+function sqlTemporada(mes: number) {
+  const mapa: Record<number, string> = {
+    1: `nombre ILIKE '%rebaja%' OR nombre ILIKE '%abrigo%' OR nombre ILIKE '%calefaccion%' OR nombre ILIKE '%sudadera%'`,
+    2: `nombre ILIKE '%san valentin%' OR nombre ILIKE '%regalo%' OR nombre ILIKE '%belleza%' OR nombre ILIKE '%perfume%'`,
+    3: `nombre ILIKE '%primavera%' OR nombre ILIKE '%limpieza%' OR nombre ILIKE '%organizador%'`,
+    4: `nombre ILIKE '%jardin%' OR nombre ILIKE '%bici%' OR nombre ILIKE '%deporte%'`,
+    5: `nombre ILIKE '%madre%' OR nombre ILIKE '%belleza%' OR nombre ILIKE '%secador%'`,
+    6: `nombre ILIKE '%verano%' OR nombre ILIKE '%playa%' OR nombre ILIKE '%ventilador%' OR nombre ILIKE '%gafas%'`,
+    7: `nombre ILIKE '%verano%' OR nombre ILIKE '%playa%' OR nombre ILIKE '%piscina%' OR nombre ILIKE '%viaje%'`,
+    8: `nombre ILIKE '%verano%' OR nombre ILIKE '%mochila%' OR nombre ILIKE '%escolar%'`,
+    9: `nombre ILIKE '%sudadera%' OR nombre ILIKE '%hoodie%' OR nombre ILIKE '%zapato%' OR nombre ILIKE '%zapatilla%' OR nombre ILIKE '%bota%' OR nombre ILIKE '%abrigo%' OR nombre ILIKE '%chaqueta%'`,
+    10: `nombre ILIKE '%halloween%' OR nombre ILIKE '%disfraz%' OR nombre ILIKE '%calabaza%' OR nombre ILIKE '%pumpkin%' OR nombre ILIKE '%fantasma%'`,
+    11: `nombre ILIKE '%portatil%' OR nombre ILIKE '%movil%' OR nombre ILIKE '%smartphone%' OR nombre ILIKE '%tablet%' OR nombre ILIKE '%tv %' OR nombre ILIKE '%television%' OR nombre ILIKE '%playstation%' OR nombre ILIKE '%xbox%' OR nombre ILIKE '%consola%'`,
+    12: `nombre ILIKE '%navidad%' OR nombre ILIKE '%regalo%' OR nombre ILIKE '%arbol%' OR nombre ILIKE '%smartwatch%' OR nombre ILIKE '%auricular%'`,
+  };
+  return mapa[mes] || mapa[9];
+}
+
+const SQL_MODA = `
+  categoria ILIKE '%moda%'
+  OR nombre ILIKE '%sudadera%'
+  OR nombre ILIKE '%hoodie%'
+  OR nombre ILIKE '%camisa%'
+  OR nombre ILIKE '%camiseta%'
+  OR nombre ILIKE '%pantalon%'
+  OR nombre ILIKE '%vestido%'
+  OR nombre ILIKE '%chaqueta%'
+  OR nombre ILIKE '%zapato%'
+  OR nombre ILIKE '%zapatilla%'
+  OR nombre ILIKE '%bota%'
+  OR nombre ILIKE '%jersey%'
+  OR nombre ILIKE '%abrigo%'
+`;
+
 export default async function HomePage() {
-  const ordenDemanda = `
+  const mes = mesMadrid();
+  const temp = sqlTemporada(mes);
+  const bucket = `
     CASE
-      WHEN categoria ILIKE '%moda%' THEN 0
-      WHEN categoria ILIKE '%tecnolog%' THEN 1
-      WHEN categoria ILIKE '%hogar%' THEN 2
-      WHEN categoria ILIKE '%deporte%' THEN 3
-      ELSE 4
+      WHEN ${temp} THEN 'temp'
+      WHEN ${SQL_MODA} THEN 'moda'
+      ELSE 'resto'
     END
   `;
 
-  const [chollazos, ebay, aliexpress, amazon, libros] = await Promise.all([
-    sql`
+  const cincoTienda = (tiendaLike: string) => sql`
     WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
-      WHERE imagen IS NOT NULL
+      WHERE tienda ILIKE ${tiendaLike}
+        AND imagen IS NOT NULL
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
-        AND (
-          categoria ILIKE '%moda%'
-          OR categoria ILIKE '%tecnolog%'
-          OR categoria ILIKE '%hogar%'
-          OR categoria ILIKE '%deporte%'
-        )
-        AND (
-          tienda ILIKE '%amazon%'
-          OR tienda ILIKE '%ebay%'
-          OR tienda ILIKE '%aliexpress%'
-        )
       ORDER BY nombre, descuento DESC NULLS LAST
+    ),
+    tagged AS (
+      SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
     ),
     ranked AS (
       SELECT *,
         ROW_NUMBER() OVER (
-          PARTITION BY
-            CASE
-              WHEN tienda ILIKE '%amazon%' THEN 'amazon'
-              WHEN tienda ILIKE '%ebay%' THEN 'ebay'
-              ELSE 'ali'
-            END
-          ORDER BY
-            ${sql.unsafe(ordenDemanda)},
-            descuento DESC NULLS LAST
+          PARTITION BY bucket
+          ORDER BY descuento DESC NULLS LAST
         ) AS rn
-      FROM base
+      FROM tagged
     )
     SELECT *
     FROM ranked
-    WHERE rn <= 4
+    WHERE
+      (bucket = 'temp' AND rn <= 2)
+      OR (bucket = 'moda' AND rn <= 2)
+      OR (bucket = 'resto' AND rn <= 1)
     ORDER BY
-      ${sql.unsafe(ordenDemanda)},
+      CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
       descuento DESC NULLS LAST
-    LIMIT 10
-  `,
-    sql`
+    LIMIT 5
+  `;
+
+  const ochoTienda = (tiendaLike: string) => sql`
     WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
-      WHERE tienda ILIKE '%ebay%'
+      WHERE tienda ILIKE ${tiendaLike}
         AND imagen IS NOT NULL
         AND (disponible = true OR disponible IS NULL)
-        AND (
-          categoria ILIKE '%moda%'
-          OR categoria ILIKE '%tecnolog%'
-          OR categoria ILIKE '%hogar%'
-          OR categoria ILIKE '%deporte%'
-        )
+        AND nombre NOT ILIKE '%prueba%'
       ORDER BY nombre, descuento DESC NULLS LAST
+    ),
+    tagged AS (
+      SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
+    ),
+    ranked AS (
+      SELECT *,
+        ROW_NUMBER() OVER (
+          PARTITION BY bucket
+          ORDER BY descuento DESC NULLS LAST
+        ) AS rn
+      FROM tagged
     )
     SELECT *
-    FROM base
+    FROM ranked
+    WHERE
+      (bucket = 'temp' AND rn <= 3)
+      OR (bucket = 'moda' AND rn <= 3)
+      OR (bucket = 'resto' AND rn <= 2)
     ORDER BY
-      ${sql.unsafe(ordenDemanda)},
+      CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
       descuento DESC NULLS LAST
     LIMIT 8
-  `,
+  `;
+
+  const [
+    ebay5,
+    ali5,
+    amazon5,
+    libros5,
+    ebay,
+    aliexpress,
+    amazon,
+    libros,
+  ] = await Promise.all([
+    cincoTienda("%ebay%"),
+    cincoTienda("%aliexpress%"),
+    cincoTienda("%amazon%"),
     sql`
-    WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
-      WHERE tienda ILIKE '%aliexpress%'
+      WHERE (disponible = true OR disponible IS NULL)
         AND imagen IS NOT NULL
-        AND (disponible = true OR disponible IS NULL)
+        AND tienda ILIKE '%casadellibro%'
         AND (
-          categoria ILIKE '%moda%'
-          OR categoria ILIKE '%tecnolog%'
-          OR categoria ILIKE '%hogar%'
-          OR categoria ILIKE '%deporte%'
+          autor ILIKE '%Proctor%'
+          OR autor ILIKE '%Tracy%'
+          OR autor ILIKE '%Robbins%'
+          OR autor ILIKE '%Rohn%'
+          OR autor ILIKE '%Burchard%'
+          OR autor ILIKE '%Hill%'
+          OR autor ILIKE '%Sharma%'
+          OR autor ILIKE '%Ferriss%'
+          OR autor ILIKE '%Kiyosaki%'
+          OR autor ILIKE '%Hicks%'
+          OR autor ILIKE '%Byrne%'
+          OR autor ILIKE '%Canfield%'
+          OR autor ILIKE '%Bourbeau%'
+          OR autor ILIKE '%Orihuela%'
+          OR autor ILIKE '%Bradshaw%'
+          OR nombre ILIKE '%Kiyosaki%'
+          OR nombre ILIKE '%Napoleon Hill%'
+          OR nombre ILIKE '%Robin Sharma%'
+          OR nombre ILIKE '%Tony Robbins%'
+          OR nombre ILIKE '%Brian Tracy%'
+          OR nombre ILIKE '%padre rico%'
+          OR nombre ILIKE '%monje que vendio%'
+          OR nombre ILIKE '%el secreto%'
         )
-      ORDER BY nombre, descuento DESC NULLS LAST
-    )
-    SELECT *
-    FROM base
-    ORDER BY
-      ${sql.unsafe(ordenDemanda)},
-      descuento DESC NULLS LAST
-    LIMIT 8
-  `,
+      ORDER BY nombre, id DESC
+      LIMIT 5
+    `,
+    ochoTienda("%ebay%"),
+    ochoTienda("%aliexpress%"),
+    ochoTienda("%amazon%"),
     sql`
-    WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
-      WHERE tienda ILIKE '%amazon%'
+      WHERE (disponible = true OR disponible IS NULL)
         AND imagen IS NOT NULL
-        AND (disponible = true OR disponible IS NULL)
+        AND tienda ILIKE '%casadellibro%'
         AND (
-          categoria ILIKE '%moda%'
-          OR categoria ILIKE '%tecnolog%'
-          OR categoria ILIKE '%hogar%'
-          OR categoria ILIKE '%deporte%'
+          autor ILIKE '%Proctor%'
+          OR autor ILIKE '%Tracy%'
+          OR autor ILIKE '%Robbins%'
+          OR autor ILIKE '%Rohn%'
+          OR autor ILIKE '%Burchard%'
+          OR autor ILIKE '%Hill%'
+          OR autor ILIKE '%Sharma%'
+          OR autor ILIKE '%Ferriss%'
+          OR autor ILIKE '%Kiyosaki%'
+          OR autor ILIKE '%Hicks%'
+          OR autor ILIKE '%Byrne%'
+          OR autor ILIKE '%Canfield%'
+          OR autor ILIKE '%Bourbeau%'
+          OR autor ILIKE '%Orihuela%'
+          OR autor ILIKE '%Bradshaw%'
+          OR nombre ILIKE '%Kiyosaki%'
+          OR nombre ILIKE '%Napoleon Hill%'
+          OR nombre ILIKE '%Robin Sharma%'
+          OR nombre ILIKE '%Tony Robbins%'
+          OR nombre ILIKE '%Brian Tracy%'
+          OR nombre ILIKE '%padre rico%'
+          OR nombre ILIKE '%monje que vendio%'
+          OR nombre ILIKE '%el secreto%'
         )
-      ORDER BY nombre, descuento DESC NULLS LAST
-    )
-    SELECT *
-    FROM base
-    ORDER BY
-      ${sql.unsafe(ordenDemanda)},
-      descuento DESC NULLS LAST
-    LIMIT 8
-  `,
-    sql`
-    SELECT DISTINCT ON (nombre) *
-    FROM productos
-    WHERE (disponible = true OR disponible IS NULL)
-      AND imagen IS NOT NULL
-      AND tienda ILIKE '%casadellibro%'
-      AND (
-        autor ILIKE '%Proctor%'
-        OR autor ILIKE '%Tracy%'
-        OR autor ILIKE '%Robbins%'
-        OR autor ILIKE '%Rohn%'
-        OR autor ILIKE '%Burchard%'
-        OR autor ILIKE '%Hill%'
-        OR autor ILIKE '%Sharma%'
-        OR autor ILIKE '%Ferriss%'
-        OR autor ILIKE '%Kiyosaki%'
-        OR autor ILIKE '%Hicks%'
-        OR autor ILIKE '%Byrne%'
-        OR autor ILIKE '%Canfield%'
-        OR autor ILIKE '%Bourbeau%'
-        OR autor ILIKE '%Orihuela%'
-        OR autor ILIKE '%Bradshaw%'
-        OR nombre ILIKE '%Kiyosaki%'
-        OR nombre ILIKE '%Napoleon Hill%'
-        OR nombre ILIKE '%Robin Sharma%'
-        OR nombre ILIKE '%Tony Robbins%'
-        OR nombre ILIKE '%Brian Tracy%'
-        OR nombre ILIKE '%padre rico%'
-        OR nombre ILIKE '%monje que vendio%'
-        OR nombre ILIKE '%el secreto%'
-      )
-    ORDER BY nombre, id DESC
-    LIMIT 8
-  `,
+      ORDER BY nombre, id DESC
+      LIMIT 8
+    `,
   ]);
+
+   const chollazos = [
+    ...(amazon5 as any[]),
+    ...(ebay5 as any[]),
+    ...(ali5 as any[]),
+    ...(libros5 as any[]),
+  ];
 
   return (
     <main className="min-h-screen bg-[#070b16]">
       <Hero />
       <Categories />
-      <ChollazosDelDia products={chollazos as any[]} />
+      <ChollazosDelDia products={chollazos} />
+            <StoreSection
+        title="Ofertas de Amazon"
+        href="/tienda/amazon"
+        products={amazon as any[]}
+      />
       <StoreSection
         title="Ofertas de eBay"
         href="/tienda/ebay"
@@ -181,11 +242,6 @@ export default async function HomePage() {
         title="Ofertas de AliExpress"
         href="/tienda/aliexpress"
         products={aliexpress as any[]}
-      />
-      <StoreSection
-        title="Ofertas de Amazon"
-        href="/tienda/amazon"
-        products={amazon as any[]}
       />
       <StoreSection
         title="Ofertas de Casa del Libro"

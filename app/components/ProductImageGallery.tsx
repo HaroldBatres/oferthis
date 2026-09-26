@@ -34,27 +34,30 @@ export default function ProductImageGallery({ imagenes, alt }: Props) {
     return Array.from(new Set(n));
   }, [imagenes]);
 
-   const [activa, setActiva] = useState(0);
+  const [activa, setActiva] = useState(0);
   const [fallo, setFallo] = useState(false);
   const actual = fotos[activa] || fotos[0];
 
   if (!actual || fallo) {
     return (
-      <div className="w-full aspect-square bg-gray-100 rounded-2xl flex items-center justify-center">
-        <span className="text-gray-400 text-sm">Imagen no disponible</span>
+      <div className="flex aspect-square w-full items-center justify-center rounded-2xl bg-gray-100">
+        <span className="text-sm text-gray-400">Imagen no disponible</span>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="bg-white rounded-2xl border overflow-hidden">
-         <img
+      <div className="overflow-hidden rounded-2xl border bg-white">
+        <img
           src={actual}
           alt={alt}
           referrerPolicy="no-referrer"
-          onError={() => setFallo(true)}
-          className="w-full h-auto max-h-[520px] object-contain bg-white"
+          onError={() => {
+            if (activa < fotos.length - 1) setActiva(activa + 1);
+            else setFallo(true);
+          }}
+          className="h-auto max-h-[520px] w-full bg-white object-contain"
         />
       </div>
       {fotos.length > 1 ? (
@@ -64,7 +67,7 @@ export default function ProductImageGallery({ imagenes, alt }: Props) {
               key={url + i}
               type="button"
               onClick={() => setActiva(i)}
-              className={`border rounded-lg overflow-hidden ${
+              className={`overflow-hidden rounded-lg border ${
                 i === activa ? "border-orange-500" : "border-gray-200"
               }`}
             >
@@ -72,7 +75,7 @@ export default function ProductImageGallery({ imagenes, alt }: Props) {
                 src={url}
                 alt=""
                 referrerPolicy="no-referrer"
-                className="w-full h-16 object-cover"
+                className="h-16 w-full object-cover"
               />
             </button>
           ))}

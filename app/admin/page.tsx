@@ -9,6 +9,9 @@ import { redirect } from "next/navigation";
 import MarkUnavailableButton from "../components/MarkUnavailableButton";
 import EditProductButton from "../components/EditProductButton";
 import SyncEbayButton from "../components/SyncEbayButton";
+import SyncAmazonButton from "../components/SyncAmazonButton";
+import SyncAliExpressButton from "../components/SyncAliExpressButton";
+import SyncCasaDelLibroButton from "../components/SyncCasaDelLibroButton";
 import LimpiarOfertasButton from "../components/LimpiarOfertasButton";
 import ImportAliExpressForm from "../components/ImportAliExpressForm";
 
@@ -26,7 +29,7 @@ export default async function AdminPage() {
   return (
     <>
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-16">
-        <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="mb-10 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div>
             <h1 className="text-3xl font-bold text-white md:text-4xl">
               Panel de Administración
@@ -36,12 +39,15 @@ export default async function AdminPage() {
             </p>
           </div>
 
-          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-3">
             <SyncEbayButton />
+            <SyncAmazonButton />
+            <SyncAliExpressButton />
+            <SyncCasaDelLibroButton />
             <LimpiarOfertasButton />
             <Link
               href="/"
-              className="text-center text-sm text-gray-300 transition hover:text-orange-500"
+              className="text-sm text-gray-300 transition hover:text-orange-500"
             >
               ← Volver a la web
             </Link>

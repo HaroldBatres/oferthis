@@ -29,7 +29,6 @@ function toLargeEbayUrl(url: string) {
   return String(url).replace(/s-l\d+/gi, "s-l1600");
 }
 
-/** Obtiene todas las fotos del anuncio (principal + additionalImages) */
 async function getEbayItemImages(
   token: string,
   itemId: string
@@ -71,6 +70,27 @@ async function getEbayItemImages(
 }
 
 const BUSQUEDAS = [
+  { q: "sudadera hombre", categoria: "Moda" },
+  { q: "sudadera mujer", categoria: "Moda" },
+  { q: "hoodie hombre", categoria: "Moda" },
+  { q: "hoodie mujer", categoria: "Moda" },
+  { q: "abrigo hombre", categoria: "Moda" },
+  { q: "abrigo mujer", categoria: "Moda" },
+  { q: "chaqueta hombre otoño", categoria: "Moda" },
+  { q: "chaqueta mujer otoño", categoria: "Moda" },
+  { q: "jersey hombre", categoria: "Moda" },
+  { q: "jersey mujer", categoria: "Moda" },
+  { q: "cazadora hombre", categoria: "Moda" },
+  { q: "plumifero mujer", categoria: "Moda" },
+  { q: "zapatos hombre", categoria: "Moda" },
+  { q: "zapatos mujer", categoria: "Moda" },
+  { q: "zapatillas mujer", categoria: "Moda" },
+  { q: "botas hombre", categoria: "Moda" },
+  { q: "botas mujer", categoria: "Moda" },
+  { q: "disfraz halloween", categoria: "Moda" },
+  { q: "decoracion halloween", categoria: "Hogar" },
+  { q: "calabaza led halloween", categoria: "Hogar" },
+  { q: "luces halloween", categoria: "Hogar" },
   { q: "portatil", categoria: "Tecnologia" },
   { q: "smartphone", categoria: "Tecnologia" },
   { q: "auriculares bluetooth", categoria: "Tecnologia" },
@@ -112,7 +132,7 @@ const BUSQUEDAS = [
   { q: "juguete gato", categoria: "Mascotas" },
   { q: "arnes perro", categoria: "Mascotas" },
   { q: "transportin mascota", categoria: "Mascotas" },
-  { q: "accesorios coche", categoria: "Automocion" },  { q: "accesorios coche", categoria: "Automocion" },
+  { q: "accesorios coche", categoria: "Automocion" },
   { q: "sensor presion neumaticos", categoria: "Automocion" },
   { q: "luces led coche", categoria: "Automocion" },
   { q: "cargador coche", categoria: "Automocion" },
@@ -143,7 +163,7 @@ export async function GET() {
     const titulosVivos = new Set<string>();
 
     for (const busqueda of BUSQUEDAS) {
-           const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
+      const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(
         busqueda.q
       )}&limit=50`;
 
@@ -164,18 +184,30 @@ export async function GET() {
       for (const item of items) {
         const nombre = item.title || "Sin título";
 
-        // 1) URL real del anuncio (obligatoria)
         const url = String(item.itemWebUrl || "");
         if (!url || !url.includes("/itm/")) {
           omitidos++;
           continue;
         }
 
+        if (
+          url.includes("ebay.co.uk") ||
+          url.includes("ebay.com/") ||
+          url.includes("ebay.de")
+        ) {
+          omitidos++;
+          continue;
+        }
+
         const precioValor = parseFloat(item.price?.value || "0");
-        const moneda = item.price?.currency || "EUR";
-        const precio = `${item.price?.value || "0"}${
-          moneda === "EUR" ? "€" : " " + moneda
-        }`;
+        const moneda = String(item.price?.currency || "EUR").toUpperCase();
+
+        if (moneda !== "EUR") {
+          omitidos++;
+          continue;
+        }
+
+        const precio = `${item.price?.value || "0"}€`;
 
         const originalValor = parseFloat(
           item.marketingPrice?.originalPrice?.value ||
@@ -190,21 +222,21 @@ export async function GET() {
           const pct = Math.round(
             ((originalValor - precioValor) / originalValor) * 100
           );
-          if (pct >= 5) {
-            antes = `${
-              item.marketingPrice?.originalPrice?.value || originalValor
-            }${moneda === "EUR" ? "€" : " " + moneda}`;
+          if (pct >= 5 && pct <= 70) {
+            antes = `${item.marketingPrice?.originalPrice?.value || originalValor}€`;
             descuento = `-${pct}%`;
           }
         }
 
-        // 2) Solo ofertas con descuento real (≥ 5 %)
-        if (descuento === "-0%") {
+        const esRopaOtono =
+          /sudadera|hoodie|abrigo|chaqueta|jersey|cazadora|plumifero|zapato|bota/.test(
+            busqueda.q
+          );
+        if (descuento === "-0%" && !esRopaOtono) {
           omitidos++;
           continue;
         }
 
-        // 3) Imagen real de eBay (sin picsum)
         const imagenRaw =
           item.image?.imageUrl || item.thumbnailImages?.[0]?.imageUrl || "";
         if (!imagenRaw || String(imagenRaw).includes("picsum")) {
@@ -213,16 +245,24 @@ export async function GET() {
         }
 
         let imagen = toLargeEbayUrl(imagenRaw);
-        let imagenes: string[] = [imagen];
+        const extrasBusqueda = [
+          ...(item.additionalImages || []),
+          ...(item.thumbnailImages || []),
+        ]
+          .map((x: any) => toLargeEbayUrl(x?.imageUrl || ""))
+          .filter(Boolean);
+
+        let imagenes: string[] = [imagen, ...extrasBusqueda];
 
         const itemId = item.itemId || item.legacyItemId;
         if (itemId) {
           const todas = await getEbayItemImages(token, itemId);
           if (todas.length > 0) {
-            imagenes = todas;
-            imagen = todas[0];
+            imagenes = [...imagenes, ...todas];
+            imagen = todas[0] || imagen;
           }
         }
+        imagenes = [...new Set(imagenes.filter(Boolean))];
         const imagenesJson = JSON.stringify(imagenes);
 
         titulosVivos.add(nombre);
@@ -273,11 +313,20 @@ export async function GET() {
       }
     }
 
-    // Caducar eBay activos que ya no salen en esta sincronización
+    await sql`
+      UPDATE productos
+      SET disponible = false
+      WHERE tienda = 'eBay'
+        AND (
+          precio ILIKE '%GBP%'
+          OR url ILIKE '%ebay.co.uk%'
+          OR url ILIKE '%ebay.com/%'
+        )
+    `;
 
     return NextResponse.json({
       ok: true,
-      mensaje: "Sincronización eBay finalizada (solo /itm/ + descuento real)",
+      mensaje: "Sincronización eBay finalizada (solo EUR / ebay.es)",
       busquedas: BUSQUEDAS.length,
       encontrados_en_ebay: encontradosTotal,
       insertados,

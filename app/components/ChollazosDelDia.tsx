@@ -2,7 +2,7 @@ import ProductCard from "./ProductCard";
 import Link from "next/link";
 
 export default function ChollazosDelDia({ products }: { products: any[] }) {
-    const list = (products || []).slice(0, 10);
+    const list = (products || []).slice(0, 20);
   if (!list.length) return null;
 
   return (

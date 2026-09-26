@@ -10,6 +10,7 @@ import ProductImageGallery from "../../components/ProductImageGallery";
 import BackToOffers from "../../components/BackToOffers";
 import { getTranslations } from "next-intl/server";
 import ProductGallery from "../../components/ProductGallery";
+import ProductCard from "@/app/components/ProductCard";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -105,7 +106,7 @@ export default async function ProductoPage({ params }: Props) {
           </div>
 
           <div className="order-1 lg:order-2 min-w-0">
-                    <ProductImageGallery
+            <ProductImageGallery
               imagenes={[
                 producto.imagen,
                 ...(Array.isArray(producto.imagenes) ? producto.imagenes : []),
@@ -230,28 +231,10 @@ export default async function ProductoPage({ params }: Props) {
 
         {relacionados.length > 0 ? (
           <div className="mt-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("related")}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">{t("related")}</h2>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {relacionados.map((item: any) => (
-                <Link
-                  key={item.id}
-                  href={`/producto/${item.id}`}
-                  className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition overflow-hidden"
-                >
-                                      <Image
-                      src={item.imagen}
-                      alt={item.nombre}
-                      width={300}
-                      height={300}
-                      unoptimized
-                  />
-                  <div className="p-4">
-                    <h3 className="font-semibold text-sm line-clamp-2 text-gray-900">
-                      {item.nombre}
-                    </h3>
-                    <p className="text-orange-500 font-bold mt-2">{item.precio}</p>
-                  </div>
-                </Link>
+                <ProductCard key={item.id} product={item} />
               ))}
             </div>
           </div>

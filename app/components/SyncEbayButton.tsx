@@ -23,7 +23,6 @@ export default function SyncEbayButton() {
         `OK: ${data.actualizados} actualizados, ${data.insertados} nuevos, ${data.marcados_no_disponibles} caducados`
       );
 
-      // Recargar el panel para ver cambios
       window.location.reload();
     } catch {
       setMensaje("Error de red");
@@ -33,18 +32,28 @@ export default function SyncEbayButton() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div>
+      <style>{`
+        .btn-ebay {
+          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        .btn-ebay:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.08);
+          box-shadow:
+            0 0 10px #2563eb,
+            0 0 22px rgba(37, 99, 235, 0.7);
+        }
+      `}</style>
       <button
         type="button"
         onClick={handleSync}
         disabled={loading}
-        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition"
+        className="btn-ebay rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
       >
         {loading ? "Sincronizando..." : "Sincronizar eBay"}
       </button>
-      {mensaje && (
-        <p className="text-xs text-gray-500 max-w-xs text-right">{mensaje}</p>
-      )}
+      {mensaje ? <p className="mt-1 text-xs text-white">{mensaje}</p> : null}
     </div>
   );
 }

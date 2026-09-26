@@ -52,6 +52,17 @@ function catKey(nombre: string): string {
   return map[nombre] || nombre;
 }
 
+function catAnchor(nombre: string): string {
+  return (
+    "cat-" +
+    String(nombre || "otros")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+  );
+}
+
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const t = await getTranslations("Store");
@@ -119,11 +130,28 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     });
   }
 
+    function scoreOtono(nombre: string) {
+    const x = String(nombre || "").toLowerCase();
+    if (/sudadera|hoodie|abrigo|chaqueta|plumifero|cazadora|jersey/.test(x))
+      return 0;
+    if (/bota|botin|zapato|zapatilla/.test(x)) return 1;
+    return 2;
+  }
+
   const porCategoria: Record<string, any[]> = {};
   for (const p of productos) {
     const cat = p.categoria || "Otros";
     if (!porCategoria[cat]) porCategoria[cat] = [];
     porCategoria[cat].push(p);
+  }
+  for (const cat of Object.keys(porCategoria)) {
+    porCategoria[cat].sort((a, b) => {
+      const s = scoreOtono(a.nombre) - scoreOtono(b.nombre);
+      if (s !== 0) return s;
+      const da = parseInt(String(a.descuento).replace(/\D/g, "") || "0");
+      const db = parseInt(String(b.descuento).replace(/\D/g, "") || "0");
+      return db - da;
+    });
   }
   const categorias = Object.keys(porCategoria).sort();
 
@@ -150,7 +178,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
         <form
           method="get"
           action={base}
-          className="mb-10 flex flex-col flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)] md:flex-row"
+          className="mb-4 flex flex-col flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)] md:flex-row"
         >
           <input
             type="search"
@@ -204,6 +232,24 @@ export default async function TiendaPage({ params, searchParams }: Props) {
           </button>
         </form>
 
+        {categorias.length > 1 ? (
+          <nav className="sticky top-16 z-40 mb-10 flex flex-wrap gap-2 border-b border-white/10 bg-[#070b16] py-3">
+            {categorias.map((cat) => {
+              const key = catKey(cat);
+              const titulo = key ? tHome(key as any) : cat;
+              return (
+                <a
+                  key={cat}
+                  href={`#${catAnchor(cat)}`}
+                  className="rounded-full border border-white/20 bg-[#0c1222] px-3 py-1.5 text-xs font-semibold text-gray-200 hover:border-orange-500 hover:text-orange-400"
+                >
+                  {titulo}
+                </a>
+              );
+            })}
+          </nav>
+        ) : null}
+
         {productos.length === 0 ? (
           <p className="text-gray-400">{t("empty")}</p>
         ) : (
@@ -212,7 +258,11 @@ export default async function TiendaPage({ params, searchParams }: Props) {
               const key = catKey(cat);
               const titulo = key ? tHome(key as any) : cat;
               return (
-                <div key={cat}>
+                <div
+                  key={cat}
+                  id={catAnchor(cat)}
+                  className="scroll-mt-32"
+                >
                   <h2 className="mb-4 border-b border-white/20 pb-2 text-xl font-semibold text-white">
                     {titulo}
                   </h2>
