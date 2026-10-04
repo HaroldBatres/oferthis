@@ -64,8 +64,8 @@ export async function searchAmazon(keywords: string) {
 
 export function isAmazonConfigured() {
   return Boolean(
-    process.env.AMAZON_ACCESS_KEY &&
-      process.env.AMAZON_SECRET_KEY &&
+    process.env.AMAZON_CLIENT_ID &&
+      process.env.AMAZON_CLIENT_SECRET &&
       process.env.AMAZON_PARTNER_TAG
   );
 }

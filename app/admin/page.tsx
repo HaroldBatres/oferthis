@@ -15,7 +15,19 @@ import SyncCasaDelLibroButton from "../components/SyncCasaDelLibroButton";
 import LimpiarOfertasButton from "../components/LimpiarOfertasButton";
 import ImportAliExpressForm from "../components/ImportAliExpressForm";
 
-export default async function AdminPage() {
+type Props = {
+  searchParams: Promise<{ tienda?: string; q?: string }>;
+};
+
+const TIENDAS = [
+  { key: "", label: "Últimos 50" },
+  { key: "amazon", label: "Amazon" },
+  { key: "ebay", label: "eBay" },
+  { key: "aliexpress", label: "AliExpress" },
+  { key: "casadellibro", label: "Casa del Libro" },
+] as const;
+
+export default async function AdminPage({ searchParams }: Props) {
   const { userId } = await auth();
 
   const ADMIN_USER_ID = "user_3Hd21PlPrp9kabWnbxXrPCzlH0D";
@@ -24,7 +36,89 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const productos = (await sql`SELECT * FROM productos ORDER BY id`) as any;
+  const params = await searchParams;
+  const filtro = (params.tienda || "").toLowerCase().trim();
+  const q = (params.q || "").trim();
+
+  let productos: any[] = [];
+
+  if (q) {
+    const like = `%${q}%`;
+    if (filtro === "amazon") {
+      productos = (await sql`
+        SELECT * FROM productos
+        WHERE tienda ILIKE '%amazon%'
+          AND nombre ILIKE ${like}
+        ORDER BY id DESC
+        LIMIT 50
+      `) as any[];
+    } else if (filtro === "ebay") {
+      productos = (await sql`
+        SELECT * FROM productos
+        WHERE tienda ILIKE '%ebay%'
+          AND nombre ILIKE ${like}
+        ORDER BY id DESC
+        LIMIT 50
+      `) as any[];
+    } else if (filtro === "aliexpress") {
+      productos = (await sql`
+        SELECT * FROM productos
+        WHERE tienda ILIKE '%aliexpress%'
+          AND nombre ILIKE ${like}
+        ORDER BY id DESC
+        LIMIT 50
+      `) as any[];
+    } else if (filtro === "casadellibro") {
+      productos = (await sql`
+        SELECT * FROM productos
+        WHERE (tienda ILIKE '%casadellibro%' OR tienda ILIKE '%casa del libro%')
+          AND nombre ILIKE ${like}
+        ORDER BY id DESC
+        LIMIT 50
+      `) as any[];
+    } else {
+      productos = (await sql`
+        SELECT * FROM productos
+        WHERE nombre ILIKE ${like}
+        ORDER BY id DESC
+        LIMIT 50
+      `) as any[];
+    }
+  } else if (filtro === "amazon") {
+    productos = (await sql`
+      SELECT * FROM productos
+      WHERE tienda ILIKE '%amazon%'
+      ORDER BY id DESC
+      LIMIT 50
+    `) as any[];
+  } else if (filtro === "ebay") {
+    productos = (await sql`
+      SELECT * FROM productos
+      WHERE tienda ILIKE '%ebay%'
+      ORDER BY id DESC
+      LIMIT 50
+    `) as any[];
+  } else if (filtro === "aliexpress") {
+    productos = (await sql`
+      SELECT * FROM productos
+      WHERE tienda ILIKE '%aliexpress%'
+      ORDER BY id DESC
+      LIMIT 50
+    `) as any[];
+  } else if (filtro === "casadellibro") {
+    productos = (await sql`
+      SELECT * FROM productos
+      WHERE tienda ILIKE '%casadellibro%' OR tienda ILIKE '%casa del libro%'
+      ORDER BY id DESC
+      LIMIT 50
+    `) as any[];
+  } else {
+    productos = (await sql`
+      SELECT * FROM productos
+      ORDER BY id DESC
+      LIMIT 50
+    `) as any[];
+  }
 
   return (
     <>
@@ -57,6 +151,54 @@ export default async function AdminPage() {
         <CreateProductForm />
 
         <ImportAliExpressForm />
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          {TIENDAS.map((t) => {
+            const href = t.key
+              ? `/admin?tienda=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`
+              : q
+                ? `/admin?q=${encodeURIComponent(q)}`
+                : "/admin";
+            const activo =
+              (t.key === "" && !filtro) || filtro === t.key;
+            return (
+              <Link
+                key={t.key || "all"}
+                href={href}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                  activo
+                    ? "bg-orange-500 text-white"
+                    : "bg-white/10 text-gray-200 hover:bg-white/20"
+                }`}
+              >
+                {t.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <form
+          method="get"
+          action="/admin"
+          className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
+        >
+          {filtro ? (
+            <input type="hidden" name="tienda" value={filtro} />
+          ) : null}
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="Buscar por nombre (ej: Joma Short)"
+            className="flex-1 rounded-xl border border-white/20 bg-[#0c1222] px-4 py-2.5 text-sm text-white placeholder:text-gray-500"
+          />
+          <button
+            type="submit"
+            className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-orange-600"
+          >
+            Buscar
+          </button>
+        </form>
 
         <div className="rounded-2xl bg-white p-6 text-gray-900">
           <table className="w-full text-sm">
@@ -143,7 +285,9 @@ export default async function AdminPage() {
         </div>
 
         <p className="mt-6 text-sm text-gray-400">
-          Total de productos: {productos.length}
+          Mostrando {productos.length} productos
+          {q ? ` · búsqueda: "${q}"` : ""}
+          {filtro ? ` · ${filtro}` : " · últimos 50"}.
         </p>
       </main>
       <Footer />

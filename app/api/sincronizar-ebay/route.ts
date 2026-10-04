@@ -70,6 +70,7 @@ async function getEbayItemImages(
 }
 
 const BUSQUEDAS = [
+  // Moda (todo el año + otoño)
   { q: "sudadera hombre", categoria: "Moda" },
   { q: "sudadera mujer", categoria: "Moda" },
   { q: "hoodie hombre", categoria: "Moda" },
@@ -84,70 +85,77 @@ const BUSQUEDAS = [
   { q: "plumifero mujer", categoria: "Moda" },
   { q: "zapatos hombre", categoria: "Moda" },
   { q: "zapatos mujer", categoria: "Moda" },
+  { q: "zapatillas hombre", categoria: "Moda" },
   { q: "zapatillas mujer", categoria: "Moda" },
   { q: "botas hombre", categoria: "Moda" },
   { q: "botas mujer", categoria: "Moda" },
+  { q: "mochila", categoria: "Moda" },
+  { q: "bolso mujer", categoria: "Moda" },
+  { q: "gafas de sol", categoria: "Moda" },
+  // Halloween (octubre)
   { q: "disfraz halloween", categoria: "Moda" },
+  { q: "disfraz adulto halloween", categoria: "Moda" },
+  { q: "mascara halloween", categoria: "Moda" },
   { q: "decoracion halloween", categoria: "Hogar" },
   { q: "calabaza led halloween", categoria: "Hogar" },
   { q: "luces halloween", categoria: "Hogar" },
+  { q: "fantasma halloween", categoria: "Hogar" },
+  // Tecnología
   { q: "portatil", categoria: "Tecnologia" },
   { q: "smartphone", categoria: "Tecnologia" },
   { q: "auriculares bluetooth", categoria: "Tecnologia" },
   { q: "tablet", categoria: "Tecnologia" },
   { q: "smartwatch", categoria: "Tecnologia" },
   { q: "monitor", categoria: "Tecnologia" },
+  { q: "powerbank", categoria: "Tecnologia" },
+  // Hogar
   { q: "robot aspirador", categoria: "Hogar" },
   { q: "aspiradora", categoria: "Hogar" },
   { q: "humidificador", categoria: "Hogar" },
-  { q: "ventilador", categoria: "Hogar" },
   { q: "lampara led", categoria: "Hogar" },
   { q: "organizador hogar", categoria: "Hogar" },
+  // Gaming
   { q: "playstation", categoria: "Gaming" },
   { q: "xbox", categoria: "Gaming" },
   { q: "raton gaming", categoria: "Gaming" },
   { q: "teclado mecanico", categoria: "Gaming" },
   { q: "mando consola", categoria: "Gaming" },
   { q: "silla gaming", categoria: "Gaming" },
+  // Deporte
   { q: "zapatillas running", categoria: "Deporte" },
   { q: "zapatillas deporte", categoria: "Deporte" },
   { q: "bicicleta", categoria: "Deporte" },
   { q: "cinta de correr", categoria: "Deporte" },
   { q: "mancuernas", categoria: "Deporte" },
+  // Cocina
   { q: "freidora aire", categoria: "Cocina" },
   { q: "cafetera", categoria: "Cocina" },
   { q: "batidora", categoria: "Cocina" },
   { q: "olla a presion", categoria: "Cocina" },
   { q: "vajilla", categoria: "Cocina" },
-  { q: "zapatillas hombre", categoria: "Moda" },
-  { q: "mochila", categoria: "Moda" },
-  { q: "chaqueta hombre", categoria: "Moda" },
-  { q: "bolso mujer", categoria: "Moda" },
-  { q: "gafas de sol", categoria: "Moda" },
+  // Belleza
   { q: "secador pelo", categoria: "Belleza" },
   { q: "plancha pelo", categoria: "Belleza" },
   { q: "maquillaje", categoria: "Belleza" },
   { q: "depiladora", categoria: "Belleza" },
+  // Mascotas
   { q: "comedero perro", categoria: "Mascotas" },
   { q: "juguete gato", categoria: "Mascotas" },
   { q: "arnes perro", categoria: "Mascotas" },
   { q: "transportin mascota", categoria: "Mascotas" },
+  // Coche
   { q: "accesorios coche", categoria: "Automocion" },
   { q: "sensor presion neumaticos", categoria: "Automocion" },
   { q: "luces led coche", categoria: "Automocion" },
   { q: "cargador coche", categoria: "Automocion" },
   { q: "alfombrillas coche", categoria: "Automocion" },
-  { q: "funda volante", categoria: "Automocion" },
-  { q: "camara marcha atras coche", categoria: "Automocion" },
   { q: "soporte movil coche", categoria: "Automocion" },
+  // Bricolaje
   { q: "taladro", categoria: "Herramientas" },
   { q: "destornillador electrico", categoria: "Herramientas" },
   { q: "caja herramientas", categoria: "Herramientas" },
-  { q: "llave inglesa", categoria: "Herramientas" },
   { q: "sierra electrica", categoria: "Herramientas" },
-  { q: "amoladora", categoria: "Herramientas" },
   { q: "nivel laser", categoria: "Herramientas" },
-  { q: "pistola calor", categoria: "Herramientas" },
 ];
 
 export async function GET() {
@@ -229,7 +237,7 @@ export async function GET() {
         }
 
         const esRopaOtono =
-          /sudadera|hoodie|abrigo|chaqueta|jersey|cazadora|plumifero|zapato|bota/.test(
+          /sudadera|hoodie|abrigo|chaqueta|jersey|cazadora|plumifero|zapato|bota|disfraz|halloween/.test(
             busqueda.q
           );
         if (descuento === "-0%" && !esRopaOtono) {

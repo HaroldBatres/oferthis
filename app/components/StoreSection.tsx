@@ -20,7 +20,7 @@ export default function StoreSection({
   href: string;
   products: any[];
 }) {
-  const list = (products || []).slice(0, 8);
+  const list = (products || []).slice(0, 15);
   if (!list.length) return null;
 
   const color = colorTienda(title, href);
@@ -52,13 +52,6 @@ export default function StoreSection({
           from { transform: translateX(-120%); }
           to { transform: translateX(120%); }
         }
-        .tienda-grid > * {
-          transition: transform 0.25s ease;
-        }
-        .tienda-grid > *:hover {
-          transform: scale(1.06);
-          z-index: 8;
-        }
       `}</style>
 
       <div className="mx-auto max-w-7xl">
@@ -89,7 +82,7 @@ export default function StoreSection({
           </Link>
         </div>
 
-        <div className="tienda-grid grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {list.map((p, i) => (
             <ProductCard key={p.id ?? p.nombre ?? i} product={p} />
           ))}

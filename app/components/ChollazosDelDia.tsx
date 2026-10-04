@@ -1,8 +1,12 @@
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 
-export default function ChollazosDelDia({ products }: { products: any[] }) {
-    const list = (products || []).slice(0, 20);
+type Props = {
+  products: any[];
+};
+
+export default function ChollazosDelDia({ products }: Props) {
+  const list = (products || []).slice(0, 20);
   if (!list.length) return null;
 
   return (
@@ -26,12 +30,11 @@ export default function ChollazosDelDia({ products }: { products: any[] }) {
             filter: drop-shadow(0 0 10px #ffcc00) drop-shadow(0 0 20px #ff6a00);
           }
         }
-                .llama-arder {
+        .llama-arder {
           display: inline-block;
           transform-origin: bottom center;
           animation: llama-arder 0.7s ease-in-out infinite;
         }
-
         @keyframes texto-viral {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
@@ -49,7 +52,7 @@ export default function ChollazosDelDia({ products }: { products: any[] }) {
       <div className="mx-auto max-w-7xl">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-                                   <h2 className="flex items-center gap-2 text-2xl font-extrabold text-white">
+            <h2 className="flex items-center gap-2 text-2xl font-extrabold text-white">
               <span className="llama-arder text-3xl">🔥</span>
               <span className="texto-viral">Lo mejor de Oferthis hoy</span>
             </h2>

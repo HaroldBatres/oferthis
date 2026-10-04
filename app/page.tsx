@@ -10,6 +10,8 @@ export const revalidate = 60;
 
 const sql = neon(process.env.DATABASE_URL!);
 
+const ChollazosAny = ChollazosDelDia as any;
+
 function mesMadrid() {
   return Number(
     new Intl.DateTimeFormat("en-GB", {
@@ -97,7 +99,7 @@ export default async function HomePage() {
     LIMIT 5
   `;
 
-  const ochoTienda = (tiendaLike: string) => sql`
+  const diezTienda = (tiendaLike: string) => sql`
     WITH base AS (
       SELECT DISTINCT ON (nombre) *
       FROM productos
@@ -121,13 +123,13 @@ export default async function HomePage() {
     SELECT *
     FROM ranked
     WHERE
-      (bucket = 'temp' AND rn <= 3)
-      OR (bucket = 'moda' AND rn <= 3)
+      (bucket = 'temp' AND rn <= 4)
+      OR (bucket = 'moda' AND rn <= 4)
       OR (bucket = 'resto' AND rn <= 2)
     ORDER BY
       CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
       descuento DESC NULLS LAST
-    LIMIT 8
+    LIMIT 10
   `;
 
   const [
@@ -144,48 +146,68 @@ export default async function HomePage() {
     cincoTienda("%aliexpress%"),
     cincoTienda("%amazon%"),
     sql`
-      SELECT DISTINCT ON (nombre) *
+      SELECT *
       FROM productos
       WHERE (disponible = true OR disponible IS NULL)
         AND imagen IS NOT NULL
-        AND tienda ILIKE '%casadellibro%'
+        AND imagen <> ''
         AND (
-          autor ILIKE '%Proctor%'
-          OR autor ILIKE '%Tracy%'
-          OR autor ILIKE '%Robbins%'
-          OR autor ILIKE '%Rohn%'
-          OR autor ILIKE '%Burchard%'
-          OR autor ILIKE '%Hill%'
-          OR autor ILIKE '%Sharma%'
-          OR autor ILIKE '%Ferriss%'
-          OR autor ILIKE '%Kiyosaki%'
-          OR autor ILIKE '%Hicks%'
-          OR autor ILIKE '%Byrne%'
-          OR autor ILIKE '%Canfield%'
-          OR autor ILIKE '%Bourbeau%'
-          OR autor ILIKE '%Orihuela%'
-          OR autor ILIKE '%Bradshaw%'
-          OR nombre ILIKE '%Kiyosaki%'
-          OR nombre ILIKE '%Napoleon Hill%'
-          OR nombre ILIKE '%Robin Sharma%'
-          OR nombre ILIKE '%Tony Robbins%'
-          OR nombre ILIKE '%Brian Tracy%'
-          OR nombre ILIKE '%padre rico%'
-          OR nombre ILIKE '%monje que vendio%'
-          OR nombre ILIKE '%el secreto%'
+          tienda ILIKE '%casadellibro%'
+          OR tienda ILIKE '%casa del libro%'
+          OR tienda ILIKE '%casa%libro%'
         )
-      ORDER BY nombre, id DESC
+      ORDER BY
+        CASE
+          WHEN autor ILIKE '%Proctor%'
+            OR autor ILIKE '%Tracy%'
+            OR autor ILIKE '%Robbins%'
+            OR autor ILIKE '%Rohn%'
+            OR autor ILIKE '%Burchard%'
+            OR autor ILIKE '%Hill%'
+            OR autor ILIKE '%Sharma%'
+            OR autor ILIKE '%Ferriss%'
+            OR autor ILIKE '%Kiyosaki%'
+            OR autor ILIKE '%Hicks%'
+            OR autor ILIKE '%Byrne%'
+            OR autor ILIKE '%Canfield%'
+            OR autor ILIKE '%Bourbeau%'
+            OR autor ILIKE '%Orihuela%'
+            OR autor ILIKE '%Bradshaw%'
+            OR nombre ILIKE '%Kiyosaki%'
+            OR nombre ILIKE '%Napoleon Hill%'
+            OR nombre ILIKE '%Robin Sharma%'
+            OR nombre ILIKE '%Tony Robbins%'
+            OR nombre ILIKE '%Brian Tracy%'
+            OR nombre ILIKE '%padre rico%'
+            OR nombre ILIKE '%monje que vendio%'
+            OR nombre ILIKE '%el secreto%'
+          THEN 0
+          ELSE 1
+        END ASC,
+        id DESC
       LIMIT 5
     `,
-    ochoTienda("%ebay%"),
-    ochoTienda("%aliexpress%"),
-    ochoTienda("%amazon%"),
+    diezTienda("%ebay%"),
+    diezTienda("%aliexpress%"),
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda ILIKE '%amazon%'
+        AND imagen IS NOT NULL
+        AND (disponible = true OR disponible IS NULL)
+        AND nombre NOT ILIKE '%prueba%'
+      ORDER BY descuento DESC NULLS LAST, id DESC
+      LIMIT 10
+    `,
     sql`
       SELECT DISTINCT ON (nombre) *
       FROM productos
       WHERE (disponible = true OR disponible IS NULL)
         AND imagen IS NOT NULL
-        AND tienda ILIKE '%casadellibro%'
+        AND (
+          tienda ILIKE '%casadellibro%'
+          OR tienda ILIKE '%casa del libro%'
+        )
         AND (
           autor ILIKE '%Proctor%'
           OR autor ILIKE '%Tracy%'
@@ -212,23 +234,23 @@ export default async function HomePage() {
           OR nombre ILIKE '%el secreto%'
         )
       ORDER BY nombre, id DESC
-      LIMIT 8
+      LIMIT 10
     `,
   ]);
 
-   const chollazos = [
-    ...(amazon5 as any[]),
-    ...(ebay5 as any[]),
-    ...(ali5 as any[]),
-    ...(libros5 as any[]),
+  const chollazos = [
+    ...(amazon5 as any[]).slice(0, 5),
+    ...(ebay5 as any[]).slice(0, 5),
+    ...(ali5 as any[]).slice(0, 5),
+    ...(libros5 as any[]).slice(0, 5),
   ];
 
   return (
     <main className="min-h-screen bg-[#070b16]">
       <Hero />
       <Categories />
-      <ChollazosDelDia products={chollazos} />
-            <StoreSection
+      <ChollazosAny products={chollazos} />
+      <StoreSection
         title="Ofertas de Amazon"
         href="/tienda/amazon"
         products={amazon as any[]}

@@ -40,6 +40,9 @@ export async function searchAliExpress(keywords: string) {
     target_currency: "EUR",
     target_language: "ES",
     ship_to_country: "ES",
+    delivery_days: "7",
+    fields:
+      "commission_rate,sale_price,original_price,product_title,product_main_image_url,product_id,product_detail_url,product_small_image_urls,ship_to_days",
   };
 
   params.sign = sign(params, appSecret);
@@ -70,6 +73,9 @@ export async function getAliExpressByIds(ids: string[]) {
     target_currency: "EUR",
     target_language: "ES",
     ship_to_country: "ES",
+    delivery_days: "7",
+    fields:
+      "product_id,product_title,target_sale_price,target_original_price,product_main_image_url,product_small_image_urls,product_detail_url,ship_to_days",
   };
 
   params.sign = sign(params, appSecret);
