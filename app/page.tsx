@@ -136,6 +136,7 @@ export default async function HomePage() {
     ebay5,
     ali5,
     amazon5,
+    joma,
     libros5,
     ebay,
     aliexpress,
@@ -145,6 +146,16 @@ export default async function HomePage() {
     cincoTienda("%ebay%"),
     cincoTienda("%aliexpress%"),
     cincoTienda("%amazon%"),
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda ILIKE '%amazon%'
+        AND nombre ILIKE '%joma%'
+        AND imagen IS NOT NULL
+        AND (disponible = true OR disponible IS NULL)
+      ORDER BY id DESC
+      LIMIT 1
+    `,
     sql`
       SELECT *
       FROM productos
@@ -238,8 +249,15 @@ export default async function HomePage() {
     `,
   ]);
 
+  const amazonChollos = [
+    ...(joma as any[]),
+    ...(amazon5 as any[]).filter(
+      (p) => !String(p.nombre || "").toLowerCase().includes("joma")
+    ),
+  ].slice(0, 5);
+
   const chollazos = [
-    ...(amazon5 as any[]).slice(0, 5),
+    ...amazonChollos,
     ...(ebay5 as any[]).slice(0, 5),
     ...(ali5 as any[]).slice(0, 5),
     ...(libros5 as any[]).slice(0, 5),
