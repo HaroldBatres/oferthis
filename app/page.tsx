@@ -137,6 +137,7 @@ export default async function HomePage() {
     ali5,
     amazon5,
     joma,
+    nikeBlanca,
     libros5,
     ebay,
     aliexpress,
@@ -151,6 +152,17 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda ILIKE '%amazon%'
         AND nombre ILIKE '%joma%'
+        AND imagen IS NOT NULL
+        AND (disponible = true OR disponible IS NULL)
+      ORDER BY id DESC
+      LIMIT 1
+    `,
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda ILIKE '%amazon%'
+        AND nombre ILIKE '%nike%'
+        AND nombre ILIKE '%blanca%'
         AND imagen IS NOT NULL
         AND (disponible = true OR disponible IS NULL)
       ORDER BY id DESC
@@ -249,11 +261,12 @@ export default async function HomePage() {
     `,
   ]);
 
+  const fijados = [...(joma as any[]), ...(nikeBlanca as any[])];
+  const idsFijados = new Set(fijados.map((p) => p.id));
+
   const amazonChollos = [
-    ...(joma as any[]),
-    ...(amazon5 as any[]).filter(
-      (p) => !String(p.nombre || "").toLowerCase().includes("joma")
-    ),
+    ...fijados,
+    ...(amazon5 as any[]).filter((p) => !idsFijados.has(p.id)),
   ].slice(0, 5);
 
   const chollazos = [
