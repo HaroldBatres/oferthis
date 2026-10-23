@@ -15,6 +15,7 @@ const cats = [
   { name: "Bricolaje", icon: "🛠️", q: "herramientas" },
   { name: "Coche", icon: "🚗", q: "automocion" },
   { name: "Libros", icon: "📚", q: "libros" },
+  { name: "Bebidas y Alimentación", icon: "🍷", q: "bebidas" },
 ];
 
 const promos = [

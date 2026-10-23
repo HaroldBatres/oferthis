@@ -20,6 +20,21 @@ type Props = {
   producto: Producto;
 };
 
+const CATEGORIAS = [
+  "Tecnología",
+  "Hogar",
+  "Gaming",
+  "Deporte",
+  "Cocina",
+  "Moda",
+  "Belleza",
+  "Mascotas",
+  "Bricolaje",
+  "Coche",
+  "Libros",
+  "Bebidas y Alimentación",
+];
+
 export default function EditProductButton({ producto }: Props) {
   const [mounted, setMounted] = useState(false);
   const [abierto, setAbierto] = useState(false);
@@ -96,7 +111,6 @@ export default function EditProductButton({ producto }: Props) {
                     ["precio", "Precio"],
                     ["antes", "Precio anterior"],
                     ["descuento", "Descuento"],
-                    ["categoria", "Categoría"],
                     ["imagen", "URL imagen"],
                     ["url", "URL afiliado (Comprar)"],
                     ["etiqueta", "Etiqueta"],
@@ -114,6 +128,23 @@ export default function EditProductButton({ producto }: Props) {
                     />
                   </div>
                 ))}
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">
+                    Categoría
+                  </label>
+                  <select
+                    value={form.categoria}
+                    onChange={(e) => actualizarCampo("categoria", e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm text-black"
+                  >
+                    {CATEGORIAS.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="flex gap-3 pt-4">
                   <button

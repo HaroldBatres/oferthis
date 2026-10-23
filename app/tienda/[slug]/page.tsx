@@ -48,6 +48,10 @@ function catKey(nombre: string): string {
     Automocion: "cat_automocion",
     Herramientas: "cat_herramientas",
     Libros: "cat_libros",
+    "Bebidas y Alimentación": "cat_bebidas",
+    "Bebidas y Alimentacion": "cat_bebidas",
+    Alimentación: "cat_bebidas",
+    Alimentacion: "cat_bebidas",
   };
   return map[nombre] || nombre;
 }
@@ -130,7 +134,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     });
   }
 
-    function scoreOtono(nombre: string) {
+  function scoreOtono(nombre: string) {
     const x = String(nombre || "").toLowerCase();
     if (/sudadera|hoodie|abrigo|chaqueta|plumifero|cazadora|jersey/.test(x))
       return 0;

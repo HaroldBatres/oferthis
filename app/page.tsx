@@ -138,7 +138,8 @@ export default async function HomePage() {
     amazon5,
     joma,
     nikeBlanca,
-    libros5,
+    librosRaw,
+    amazonExtra,
     ebay,
     aliexpress,
     amazon,
@@ -171,44 +172,21 @@ export default async function HomePage() {
     sql`
       SELECT *
       FROM productos
-      WHERE (disponible = true OR disponible IS NULL)
+      WHERE tienda = 'CasaDelLibro'
         AND imagen IS NOT NULL
         AND imagen <> ''
-        AND (
-          tienda ILIKE '%casadellibro%'
-          OR tienda ILIKE '%casa del libro%'
-          OR tienda ILIKE '%casa%libro%'
-        )
-      ORDER BY
-        CASE
-          WHEN autor ILIKE '%Proctor%'
-            OR autor ILIKE '%Tracy%'
-            OR autor ILIKE '%Robbins%'
-            OR autor ILIKE '%Rohn%'
-            OR autor ILIKE '%Burchard%'
-            OR autor ILIKE '%Hill%'
-            OR autor ILIKE '%Sharma%'
-            OR autor ILIKE '%Ferriss%'
-            OR autor ILIKE '%Kiyosaki%'
-            OR autor ILIKE '%Hicks%'
-            OR autor ILIKE '%Byrne%'
-            OR autor ILIKE '%Canfield%'
-            OR autor ILIKE '%Bourbeau%'
-            OR autor ILIKE '%Orihuela%'
-            OR autor ILIKE '%Bradshaw%'
-            OR nombre ILIKE '%Kiyosaki%'
-            OR nombre ILIKE '%Napoleon Hill%'
-            OR nombre ILIKE '%Robin Sharma%'
-            OR nombre ILIKE '%Tony Robbins%'
-            OR nombre ILIKE '%Brian Tracy%'
-            OR nombre ILIKE '%padre rico%'
-            OR nombre ILIKE '%monje que vendio%'
-            OR nombre ILIKE '%el secreto%'
-          THEN 0
-          ELSE 1
-        END ASC,
-        id DESC
+      ORDER BY id DESC
       LIMIT 5
+    `,
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda ILIKE '%amazon%'
+        AND imagen IS NOT NULL
+        AND (disponible = true OR disponible IS NULL)
+        AND nombre NOT ILIKE '%prueba%'
+      ORDER BY descuento DESC NULLS LAST, id DESC
+      LIMIT 15
     `,
     diezTienda("%ebay%"),
     diezTienda("%aliexpress%"),
@@ -261,19 +239,51 @@ export default async function HomePage() {
     `,
   ]);
 
+  let libros5 = librosRaw as any[];
+  if (libros5.length < 5) {
+    const extra = (await sql`
+      SELECT *
+      FROM productos
+      WHERE tienda = 'CasaDelLibro'
+        AND imagen IS NOT NULL
+        AND imagen <> ''
+      ORDER BY id DESC
+      LIMIT 10
+    `) as any[];
+    const ids = new Set(libros5.map((p) => p.id));
+    for (const p of extra) {
+      if (!ids.has(p.id)) {
+        libros5.push(p);
+        if (libros5.length >= 5) break;
+      }
+    }
+  }
+
   const fijados = [...(joma as any[]), ...(nikeBlanca as any[])];
   const idsFijados = new Set(fijados.map((p) => p.id));
 
-  const amazonChollos = [
+  let amazonChollos = [
     ...fijados,
     ...(amazon5 as any[]).filter((p) => !idsFijados.has(p.id)),
-  ].slice(0, 5);
+  ];
+
+  if (amazonChollos.length < 5) {
+    const ids = new Set(amazonChollos.map((p) => p.id));
+    for (const p of amazonExtra as any[]) {
+      if (!ids.has(p.id)) {
+        amazonChollos.push(p);
+        if (amazonChollos.length >= 5) break;
+      }
+    }
+  }
+
+  amazonChollos = amazonChollos.slice(0, 5);
 
   const chollazos = [
     ...amazonChollos,
     ...(ebay5 as any[]).slice(0, 5),
     ...(ali5 as any[]).slice(0, 5),
-    ...(libros5 as any[]).slice(0, 5),
+    ...libros5.slice(0, 5),
   ];
 
   return (

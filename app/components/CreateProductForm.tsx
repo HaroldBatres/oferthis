@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 
-const campo =
-  "w-full rounded-xl border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-orange-500";
-
 export default function CreateProductForm() {
   const [nombre, setNombre] = useState("");
   const [tienda, setTienda] = useState("Amazon");
@@ -51,92 +48,76 @@ export default function CreateProductForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 text-gray-900 shadow-sm"
+      className="mb-10 rounded-2xl border bg-white p-6 text-gray-900 shadow-sm"
     >
-      <h2 className="mb-6 text-xl font-bold text-gray-900">
-        Añadir nuevo producto
-      </h2>
+      <h2 className="mb-6 text-xl font-bold text-gray-900">Añadir nuevo producto</h2>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Nombre
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Nombre</label>
           <input
             type="text"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className={campo}
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
             required
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Tienda
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Tienda</label>
           <select
             value={tienda}
             onChange={(e) => setTienda(e.target.value)}
-            className={campo}
+            className="w-full rounded-xl border p-3 text-gray-900"
           >
             <option>Amazon</option>
             <option>eBay</option>
             <option>AliExpress</option>
-            <option>SHEIN</option>
+            <option>CasaDelLibro</option>
           </select>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Precio actual
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Precio</label>
           <input
             type="text"
             value={precio}
             onChange={(e) => setPrecio(e.target.value)}
-            placeholder="179,99€"
-            className={campo}
+            placeholder="19,99€"
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
             required
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Precio anterior
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Precio anterior</label>
           <input
             type="text"
             value={antes}
             onChange={(e) => setAntes(e.target.value)}
-            placeholder="309,99€"
-            className={campo}
-            required
+            placeholder="29,99€"
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Descuento
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Descuento</label>
           <input
             type="text"
             value={descuento}
             onChange={(e) => setDescuento(e.target.value)}
-            placeholder="-42%"
-            className={campo}
-            required
+            placeholder="-33%"
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            Categoría
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Categoría</label>
           <select
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
-            className={campo}
+            className="w-full rounded-xl border p-3 text-gray-900"
           >
             <option>Tecnología</option>
             <option>Hogar</option>
@@ -144,25 +125,29 @@ export default function CreateProductForm() {
             <option>Deporte</option>
             <option>Cocina</option>
             <option>Moda</option>
+            <option>Belleza</option>
+            <option>Mascotas</option>
+            <option>Bricolaje</option>
+            <option>Coche</option>
+            <option>Libros</option>
+            <option>Bebidas y Alimentación</option>
           </select>
         </div>
 
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-gray-800">
-            URL de la imagen
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">URL de la imagen</label>
           <input
             type="text"
             value={imagen}
             onChange={(e) => setImagen(e.target.value)}
-            placeholder="https://picsum.photos/400/400?5"
-            className={campo}
+            placeholder="https://..."
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
             required
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-gray-800">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             URL del producto (opcional)
           </label>
           <input
@@ -170,19 +155,19 @@ export default function CreateProductForm() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://amazon.es/..."
-            className={campo}
+            className="w-full rounded-xl border p-3 text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-800">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Caduca el (opcional)
           </label>
           <input
             type="date"
             value={caducaEn}
             onChange={(e) => setCaducaEn(e.target.value)}
-            className={campo}
+            className="w-full rounded-xl border p-3 text-gray-900"
           />
         </div>
       </div>

@@ -32,11 +32,55 @@ export default async function BuscarPage({ searchParams }: Props) {
   const maxN = max ? parseFloat(max) : null;
 
   if (!query) {
+    let todos = (await sql`
+      SELECT * FROM productos
+      WHERE disponible IS DISTINCT FROM false
+        AND imagen IS NOT NULL
+      ORDER BY id DESC
+      LIMIT 80
+    `) as any[];
+
+    if (autorQ) {
+      todos = todos.filter((p) =>
+        String(p.autor || "").toLowerCase().includes(autorQ)
+      );
+    }
+
+    if (minN != null && !Number.isNaN(minN)) {
+      todos = todos.filter((p) => parsePrecio(p.precio) >= minN);
+    }
+
+    if (maxN != null && !Number.isNaN(maxN)) {
+      todos = todos.filter((p) => parsePrecio(p.precio) <= maxN);
+    }
+
+    if (orden === "precio") {
+      todos = [...todos].sort(
+        (a, b) => parsePrecio(a.precio) - parsePrecio(b.precio)
+      );
+    } else if (orden === "descuento") {
+      todos = [...todos].sort((a, b) => {
+        const da = parseInt(String(a.descuento || "").replace(/\D/g, "") || "0");
+        const db = parseInt(String(b.descuento || "").replace(/\D/g, "") || "0");
+        return db - da;
+      });
+    }
+
     return (
       <>
-        <main className="mx-auto max-w-7xl px-4 py-16">
-          <h1 className="text-2xl font-bold text-white">Buscar ofertas</h1>
-          <p className="mt-2 text-gray-400">Escribe algo en el buscador.</p>
+        <main className="mx-auto max-w-7xl px-4 py-10">
+          <h1 className="text-2xl font-bold text-white">Todos los chollos</h1>
+          <p className="mt-1 text-sm text-gray-400">{todos.length} ofertas</p>
+
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            {todos.map((p: any) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+
+          {todos.length === 0 && (
+            <p className="mt-8 text-gray-400">No hay ofertas disponibles.</p>
+          )}
         </main>
         <Footer />
       </>
