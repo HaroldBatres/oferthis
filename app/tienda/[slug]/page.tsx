@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import Footer from "@/components/Footer";
-import ProductCard from "../../components/ProductCard";
+import FavoriteButton from "../../components/FavoriteButton";
+import DiscountBadge from "../../components/DiscountBadge";
 import { sql } from "../../lib/db";
 
 type Props = {
@@ -49,109 +51,69 @@ function catKey(nombre: string): string {
     Automocion: "cat_automocion",
     Herramientas: "cat_herramientas",
     Libros: "cat_libros",
-    "Bebidas y Alimentación": "cat_bebidas",
-    "Bebidas y Alimentacion": "cat_bebidas",
-    Alimentación: "cat_bebidas",
-    Alimentacion: "cat_bebidas",
-    Bebidas: "cat_bebidas",
   };
   return map[nombre] || "";
 }
 
-function catAnchor(nombre: string): string {
-  return (
-    "cat-" +
-    String(nombre || "otros")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-  );
-}
-
-function tituloCategoria(cat: string, tHome: any): string {
-  const key = catKey(cat);
-  if (!key) return cat;
-  try {
-    return tHome(key);
-  } catch {
-    return cat;
-  }
-}
-
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const t = await getTranslations("Store");
   const nombre = NOMBRES[slug.toLowerCase()] || slug;
   return {
-    title: t("metaTitle", { nombre }),
-    description: t("metaDescription", { nombre }),
+    title: `${nombre} | Oferthis`,
+    description: `Ofertas de ${nombre} en Oferthis`,
   };
 }
 
 export default async function TiendaPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { q, orden, min, max, soloOfertas } = await searchParams;
-  const t = await getTranslations("Store");
   const tHome = await getTranslations("Home");
-  const tCommon = await getTranslations("Common");
 
-  const slugLower = slug.toLowerCase();
-  const nombreTienda = NOMBRES[slugLower] || slug;
+  const nombreTienda = NOMBRES[slug.toLowerCase()] || slug;
 
   let productos = (await sql`
-    SELECT * FROM (
-      SELECT DISTINCT ON (nombre) *
-      FROM productos
-      WHERE (disponible = true OR disponible IS NULL)
-        AND LOWER(tienda) = ${slugLower}
-      ORDER BY nombre, id DESC
-    ) sub
-    ORDER BY id DESC
+    SELECT * FROM productos
+    WHERE tienda ILIKE ${"%" + nombreTienda + "%"}
+      AND (disponible = true OR disponible IS NULL)
+      AND imagen IS NOT NULL
+    ORDER BY descuento DESC NULLS LAST, id DESC
   `) as any[];
 
-  if (q && q.trim()) {
-    const term = q.trim().toLowerCase();
-    productos = productos.filter((p) =>
-      String(p.nombre || "").toLowerCase().includes(term)
+  if (q) {
+    const ql = q.toLowerCase();
+    productos = productos.filter(
+      (p) =>
+        String(p.nombre || "").toLowerCase().includes(ql) ||
+        String(p.categoria || "").toLowerCase().includes(ql)
     );
-  }
-
-  const minN = min ? parseFloat(min) : null;
-  if (minN != null && !Number.isNaN(minN)) {
-    productos = productos.filter((p) => parsePrecio(p.precio) >= minN);
-  }
-
-  const maxN = max ? parseFloat(max) : null;
-  if (maxN != null && !Number.isNaN(maxN)) {
-    productos = productos.filter((p) => parsePrecio(p.precio) <= maxN);
   }
 
   if (soloOfertas === "1") {
     productos = productos.filter((p) => {
       const d = String(p.descuento || "");
-      return d && d !== "-0%" && d !== "0%" && d !== "";
+      return d && d !== "-0%" && d !== "0%";
     });
   }
 
-  if (orden === "precio") {
-    productos = [...productos].sort(
-      (a, b) => parsePrecio(a.precio) - parsePrecio(b.precio)
-    );
+  if (min || max) {
+    const minN = min ? parseFloat(min) : 0;
+    const maxN = max ? parseFloat(max) : Infinity;
+    productos = productos.filter((p) => {
+      const n = parsePrecio(p.precio);
+      return n >= minN && n <= maxN;
+    });
+  }
+
+  if (orden === "precio_asc") {
+    productos.sort((a, b) => parsePrecio(a.precio) - parsePrecio(b.precio));
+  } else if (orden === "precio_desc") {
+    productos.sort((a, b) => parsePrecio(b.precio) - parsePrecio(a.precio));
   } else if (orden === "descuento") {
-    productos = [...productos].sort((a, b) => {
-      const da = parseInt(String(a.descuento).replace(/\D/g, "") || "0");
-      const db = parseInt(String(b.descuento).replace(/\D/g, "") || "0");
+    productos.sort((a, b) => {
+      const da = parseInt(String(a.descuento || "0").replace(/\D/g, "")) || 0;
+      const db = parseInt(String(b.descuento || "0").replace(/\D/g, "")) || 0;
       return db - da;
     });
-  }
-
-  function scoreOtono(nombre: string) {
-    const x = String(nombre || "").toLowerCase();
-    if (/sudadera|hoodie|abrigo|chaqueta|plumifero|cazadora|jersey/.test(x))
-      return 0;
-    if (/bota|botin|zapato|zapatilla/.test(x)) return 1;
-    return 2;
   }
 
   const porCategoria: Record<string, any[]> = {};
@@ -160,77 +122,51 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     if (!porCategoria[cat]) porCategoria[cat] = [];
     porCategoria[cat].push(p);
   }
-  for (const cat of Object.keys(porCategoria)) {
-    porCategoria[cat].sort((a, b) => {
-      const s = scoreOtono(a.nombre) - scoreOtono(b.nombre);
-      if (s !== 0) return s;
-      const da = parseInt(String(a.descuento).replace(/\D/g, "") || "0");
-      const db = parseInt(String(b.descuento).replace(/\D/g, "") || "0");
-      return db - da;
-    });
-  }
   const categorias = Object.keys(porCategoria).sort();
-
-  const base = `/tienda/${slugLower}`;
 
   return (
     <>
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-16">
-        <Link
-          href="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-orange-500"
-        >
-          ← {tCommon("backToOffers")}
-        </Link>
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-6">
+          <Link href="/" className="text-sm text-orange-400 hover:text-orange-300">
+            ← Volver
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold text-white">{nombreTienda}</h1>
+          <p className="mt-1 text-gray-400">{productos.length} productos</p>
+        </div>
 
-        <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl">
-          {t("offersOf")} <span className="text-orange-500">{nombreTienda}</span>
-        </h1>
-        <p className="mb-6 text-gray-400">
-          {productos.length}{" "}
-          {productos.length === 1 ? t("product") : t("products")}
-        </p>
-
-        <form
-          method="get"
-          action={base}
-          className="mb-4 flex flex-col flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition duration-300 hover:border-orange-400 hover:shadow-[0_0_28px_rgba(249,115,22,0.45)] md:flex-row"
-        >
+        <form className="mb-8 flex flex-wrap items-center gap-3">
           <input
-            type="search"
             name="q"
             defaultValue={q || ""}
-            placeholder={t("searchProduct")}
-            className="min-w-[180px] flex-1 rounded-xl border-2 border-gray-800 bg-white px-4 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 hover:shadow-[0_0_16px_rgba(249,115,22,0.4)] focus:border-orange-500 focus:shadow-[0_0_18px_rgba(249,115,22,0.5)]"
+            placeholder="Buscar..."
+            className="rounded-xl border border-white/20 bg-[#0c1222] px-4 py-2 text-sm text-white"
           />
           <input
-            type="number"
             name="min"
+            type="number"
             defaultValue={min || ""}
-            placeholder={t("priceMin")}
-            min={0}
-            step={1}
-            className="w-full rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 md:w-28"
+            placeholder="Min €"
+            className="w-24 rounded-xl border border-white/20 bg-[#0c1222] px-3 py-2 text-sm text-white"
           />
           <input
-            type="number"
             name="max"
+            type="number"
             defaultValue={max || ""}
-            placeholder={t("priceMax")}
-            min={0}
-            step={1}
-            className="w-full rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black placeholder:text-gray-600 outline-none transition hover:border-orange-500 md:w-28"
+            placeholder="Max €"
+            className="w-24 rounded-xl border border-white/20 bg-[#0c1222] px-3 py-2 text-sm text-white"
           />
           <select
             name="orden"
             defaultValue={orden || ""}
-            className="rounded-xl border-2 border-gray-800 bg-white px-3 py-2.5 text-sm font-medium text-black outline-none transition hover:border-orange-500"
+            className="rounded-xl border border-white/20 bg-[#0c1222] px-3 py-2 text-sm text-white"
           >
-            <option value="">{t("orderRecent")}</option>
-            <option value="precio">{t("orderPrice")}</option>
-            <option value="descuento">{t("orderDiscount")}</option>
+            <option value="">Ordenar</option>
+            <option value="precio_asc">Precio ↑</option>
+            <option value="precio_desc">Precio ↓</option>
+            <option value="descuento">Descuento</option>
           </select>
-          <label className="flex items-center gap-2 whitespace-nowrap px-2 text-sm font-medium text-black">
+          <label className="flex items-center gap-2 whitespace-nowrap px-2 text-sm font-medium text-white">
             <input
               type="checkbox"
               name="soloOfertas"
@@ -238,51 +174,59 @@ export default async function TiendaPage({ params, searchParams }: Props) {
               defaultChecked={soloOfertas === "1"}
               className="rounded border-gray-800"
             />
-            {t("onlyDeals")}
+            Solo ofertas
           </label>
           <button
             type="submit"
             className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
           >
-            {t("filter")}
+            Filtrar
           </button>
         </form>
 
-        {categorias.length > 1 ? (
-          <nav className="sticky top-16 z-40 mb-10 flex flex-wrap gap-2 border-b border-white/10 bg-[#070b16] py-3">
-            {categorias.map((cat) => {
-              const titulo = tituloCategoria(cat, tHome);
-              return (
-                <a
-                  key={cat}
-                  href={`#${catAnchor(cat)}`}
-                  className="rounded-full border border-white/20 bg-[#0c1222] px-3 py-1.5 text-xs font-semibold text-gray-200 hover:border-orange-500 hover:text-orange-400"
-                >
-                  {titulo}
-                </a>
-              );
-            })}
-          </nav>
-        ) : null}
-
         {productos.length === 0 ? (
-          <p className="text-gray-400">{t("empty")}</p>
+          <p className="text-gray-400">No hay productos</p>
         ) : (
           <div className="space-y-12">
             {categorias.map((cat) => {
-              const titulo = tituloCategoria(cat, tHome);
+              const key = catKey(cat);
+              const titulo = key ? tHome(key as any) : cat;
               return (
-                <div
-                  key={cat}
-                  id={catAnchor(cat)}
-                  className="scroll-mt-32"
-                >
+                <div key={cat}>
                   <h2 className="mb-4 border-b border-white/20 pb-2 text-xl font-semibold text-white">
                     {titulo}
                   </h2>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {porCategoria[cat].map((p: any) => (
-                      <ProductCard key={p.id} product={p} />
+                      <Link
+                        key={p.id}
+                        href={`/producto/${p.id}`}
+                        className="group rounded-xl border border-gray-100 bg-white text-gray-900 shadow-sm transition hover:shadow-md"
+                      >
+                        <div className="relative overflow-hidden rounded-t-xl">
+                          <Image
+                            src={p.imagen}
+                            alt={p.nombre}
+                            width={240}
+                            height={240}
+                            unoptimized
+                            className="h-40 w-full object-cover transition duration-300 group-hover:scale-105"
+                          />
+                          <DiscountBadge descuento={p.descuento} />
+                          <div className="absolute top-2 right-2">
+                            <FavoriteButton productId={p.id} />
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-orange-500">
+                            {p.nombre}
+                          </h3>
+                          <p className="mt-1 font-bold text-orange-600">{p.precio}</p>
+                          {p.antes && p.antes !== p.precio && (
+                            <p className="text-xs text-gray-400 line-through">{p.antes}</p>
+                          )}
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </div>

@@ -4,23 +4,14 @@ import zlib from "zlib";
 import { parse } from "csv-parse";
 import { Readable } from "stream";
 
-const LIMITE = 300;
-
-function imagenGrande(url: string) {
-  const u = String(url || "");
-  if (!u) return "";
-  if (u.includes("productserve.com")) {
-    return u.replace(/w=\d+/gi, "w=800").replace(/h=\d+/gi, "h=800");
-  }
-  return u;
-}
+const LIMITE = 80;
 
 export async function GET() {
   try {
-    const feedUrl = process.env.AWIN_MIBRO_FEED_URL || process.env.AWIN_FEED_URL;
+    const feedUrl = process.env.AWIN_MIBRO_FEED_URL;
     if (!feedUrl) {
       return NextResponse.json(
-        { error: "Falta AWIN_MIBRO_FEED_URL (o AWIN_FEED_URL) en .env.local" },
+        { error: "Falta AWIN_MIBRO_FEED_URL en las variables de entorno" },
         { status: 500 }
       );
     }
@@ -28,7 +19,7 @@ export async function GET() {
     const res = await fetch(feedUrl);
     if (!res.ok || !res.body) {
       return NextResponse.json(
-        { error: "No se pudo descargar el feed de Awin para Mibro" },
+        { error: "No se pudo descargar el feed de Awin Mibro" },
         { status: 500 }
       );
     }
@@ -53,55 +44,32 @@ export async function GET() {
     for await (const row of stream as any) {
       procesados++;
 
-      const merchant = String(
-        row.merchant_name || row.brand_name || row.merchant_id || ""
-      ).toLowerCase();
+      const nombre = String(row.product_name || "").trim();
+      const imagen = String(
+        row.merchant_image_url || row.aw_image_url || row.large_image || ""
+      ).trim();
+      const url = String(row.aw_deep_link || row.merchant_deep_link || "").trim();
 
-      // Solo productos de Mibro (ajusta si el nombre en el feed es distinto)
-      if (!merchant.includes("mibro")) {
+      if (!nombre || !imagen || !url) {
         omitidos++;
         continue;
       }
 
-      const nombre = String(row.product_name || "").slice(0, 250);
-      const enStock = String(row.in_stock ?? "").trim().toLowerCase();
-      const stockOk =
-        enStock === "" ||
-        enStock === "true" ||
-        enStock === "1" ||
-        enStock === "yes";
+      const precioNum = parseFloat(String(row.search_price || "0").replace(",", ".")) || 0;
+      const antesNum = parseFloat(String(row.store_price || row.rrp_price || "0").replace(",", ".")) || 0;
+      const savings = parseFloat(String(row.savings_percent || "0").replace(",", ".")) || 0;
 
-      const precioNum = parseFloat(
-        row.search_price || row.store_price || row.display_price || "0"
-      );
-
-      if (!stockOk || !(precioNum > 0) || !nombre || !row.aw_deep_link) {
+      // Solo si hay descuento real (savings > 0 o precio anterior mayor)
+      const tieneDescuento = savings > 1 || (antesNum > precioNum && precioNum > 0);
+      if (!tieneDescuento) {
         omitidos++;
         continue;
       }
 
-      if (insertados + actualizados >= LIMITE) break;
-
-      const antesNum = parseFloat(
-        row.rrp_price || row.search_price || row.store_price || "0"
-      );
-      const moneda = row.currency || "EUR";
-      const sufijo = moneda === "EUR" ? "€" : ` ${moneda}`;
-      const precio = `${precioNum.toFixed(2).replace(".", ",")}${sufijo}`;
-      const antes = `${antesNum.toFixed(2).replace(".", ",")}${sufijo}`;
-      const descuentoPct = parseFloat(row.savings_percent || "0");
-      const descuento =
-        descuentoPct > 0 ? `-${Math.round(descuentoPct)}%` : "-0%";
-
-      const imagen = imagenGrande(
-        row.large_image || row.aw_image_url || row.merchant_image_url || ""
-      );
-      const url = row.aw_deep_link || row.merchant_deep_link;
-      const categoria =
-        row.merchant_category ||
-        row.category_name ||
-        row.product_type ||
-        "Tecnología";
+      const precio = precioNum.toFixed(2).replace(".", ",") + "€";
+      const antes = antesNum > precioNum ? antesNum.toFixed(2).replace(".", ",") + "€" : "";
+      const pct = savings > 0 ? Math.round(savings) : Math.round((1 - precioNum / antesNum) * 100);
+      const descuento = pct > 0 ? `-${pct}%` : "";
 
       const existente = (await sql`
         SELECT id FROM productos
@@ -117,7 +85,7 @@ export async function GET() {
             descuento = ${descuento},
             imagen = ${imagen},
             url = ${url},
-            categoria = ${categoria},
+            categoria = 'Tecnologia',
             disponible = true
           WHERE id = ${existente[0].id}
         `;
@@ -128,7 +96,7 @@ export async function GET() {
             nombre, tienda, precio, antes, descuento, categoria,
             imagen, url, disponible
           ) VALUES (
-            ${nombre}, 'Mibro', ${precio}, ${antes}, ${descuento}, ${categoria},
+            ${nombre}, 'Mibro', ${precio}, ${antes}, ${descuento}, 'Tecnologia',
             ${imagen}, ${url}, true
           )
         `;
@@ -136,12 +104,10 @@ export async function GET() {
       }
 
       if (muestra.length < 5) {
-        muestra.push({
-          nombre: nombre.slice(0, 60),
-          precio,
-          descuento,
-        });
+        muestra.push({ nombre: nombre.slice(0, 60), precio, descuento });
       }
+
+      if (insertados + actualizados >= LIMITE) break;
     }
 
     return NextResponse.json({
