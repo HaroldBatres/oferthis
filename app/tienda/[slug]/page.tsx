@@ -21,6 +21,7 @@ const NOMBRES: Record<string, string> = {
   aliexpress: "AliExpress",
   shein: "SHEIN",
   casadellibro: "Casa del Libro",
+  mibro: "Mibro",
 };
 
 function parsePrecio(p: string): number {
@@ -52,8 +53,9 @@ function catKey(nombre: string): string {
     "Bebidas y Alimentacion": "cat_bebidas",
     Alimentación: "cat_bebidas",
     Alimentacion: "cat_bebidas",
+    Bebidas: "cat_bebidas",
   };
-  return map[nombre] || nombre;
+  return map[nombre] || "";
 }
 
 function catAnchor(nombre: string): string {
@@ -65,6 +67,16 @@ function catAnchor(nombre: string): string {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
   );
+}
+
+function tituloCategoria(cat: string, tHome: any): string {
+  const key = catKey(cat);
+  if (!key) return cat;
+  try {
+    return tHome(key);
+  } catch {
+    return cat;
+  }
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -239,8 +251,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
         {categorias.length > 1 ? (
           <nav className="sticky top-16 z-40 mb-10 flex flex-wrap gap-2 border-b border-white/10 bg-[#070b16] py-3">
             {categorias.map((cat) => {
-              const key = catKey(cat);
-              const titulo = key ? tHome(key as any) : cat;
+              const titulo = tituloCategoria(cat, tHome);
               return (
                 <a
                   key={cat}
@@ -259,8 +270,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
         ) : (
           <div className="space-y-12">
             {categorias.map((cat) => {
-              const key = catKey(cat);
-              const titulo = key ? tHome(key as any) : cat;
+              const titulo = tituloCategoria(cat, tHome);
               return (
                 <div
                   key={cat}

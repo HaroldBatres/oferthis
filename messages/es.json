@@ -18,7 +18,8 @@
     "categories": "Categorías",
     "searchPlaceholder": "Buscar ofertas...",
     "searchButton": "Buscar",
-    "ebayDeals": "Ofertas de eBay",    "aliexpressDeals": "Ofertas de AliExpress",
+    "ebayDeals": "Ofertas de eBay",
+    "aliexpressDeals": "Ofertas de AliExpress",
     "seeAll": "Ver todas",
     "dealsSelection": "Selección de chollos",
     "featuredOffers": "Ofertas destacadas",
@@ -31,11 +32,12 @@
     "cat_deporte": "Deporte",
     "cat_cocina": "Cocina",
     "cat_moda": "Moda",
-        "cat_belleza": "Belleza",
+    "cat_belleza": "Belleza",
     "cat_mascotas": "Mascotas",
     "cat_automocion": "Coche",
     "cat_herramientas": "Bricolaje",
-    "cat_libros": "Libros"
+    "cat_libros": "Libros",
+    "cat_bebidas": "Bebidas"
   },
   "Favorites": {
     "title": "Mis Favoritos",

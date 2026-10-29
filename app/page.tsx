@@ -136,6 +136,7 @@ export default async function HomePage() {
     ebay5,
     ali5,
     amazon5,
+    mibro5,
     joma,
     nikeBlanca,
     librosRaw,
@@ -143,11 +144,25 @@ export default async function HomePage() {
     ebay,
     aliexpress,
     amazon,
+    mibro,
     libros,
   ] = await Promise.all([
     cincoTienda("%ebay%"),
     cincoTienda("%aliexpress%"),
     cincoTienda("%amazon%"),
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda = 'Mibro'
+        AND imagen IS NOT NULL
+        AND imagen <> ''
+        AND (disponible = true OR disponible IS NULL)
+        AND descuento IS NOT NULL
+        AND descuento <> '-0%'
+      ORDER BY 
+        CAST(REPLACE(REPLACE(descuento, '-', ''), '%', '') AS INTEGER) DESC
+      LIMIT 5
+    `,
     sql`
       SELECT *
       FROM productos
@@ -198,6 +213,20 @@ export default async function HomePage() {
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
       ORDER BY descuento DESC NULLS LAST, id DESC
+      LIMIT 10
+    `,
+    sql`
+      SELECT *
+      FROM productos
+      WHERE tienda = 'Mibro'
+        AND imagen IS NOT NULL
+        AND imagen <> ''
+        AND (disponible = true OR disponible IS NULL)
+      ORDER BY 
+        CASE 
+          WHEN descuento = '-0%' OR descuento IS NULL THEN 0
+          ELSE CAST(REPLACE(REPLACE(descuento, '-', ''), '%', '') AS INTEGER)
+        END DESC
       LIMIT 10
     `,
     sql`
@@ -283,6 +312,7 @@ export default async function HomePage() {
     ...amazonChollos,
     ...(ebay5 as any[]).slice(0, 5),
     ...(ali5 as any[]).slice(0, 5),
+    ...(mibro5 as any[]).slice(0, 5),
     ...libros5.slice(0, 5),
   ];
 
@@ -306,6 +336,11 @@ export default async function HomePage() {
         href="/tienda/aliexpress"
         products={aliexpress as any[]}
       />
+    <StoreSection
+  title="Ofertas de Mibro"
+  href="/tienda/mibro"
+  products={mibro as any[]}
+/>
       <StoreSection
         title="Ofertas de Casa del Libro"
         href="/buscar?q=libros"

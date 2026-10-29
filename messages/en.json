@@ -32,7 +32,11 @@
     "cat_cocina": "Kitchen",
     "cat_moda": "Fashion",
     "cat_belleza": "Beauty",
-    "cat_mascotas": "Pets"
+    "cat_mascotas": "Pets",
+    "cat_automocion": "Car",
+    "cat_herramientas": "DIY",
+    "cat_libros": "Books",
+    "cat_bebidas": "Drinks"
   },
   "Favorites": {
     "title": "My Favorites",
