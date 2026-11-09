@@ -7,7 +7,6 @@ function colorTienda(title: string, href: string) {
   if (s.includes("ali")) return "#e62e04";
   if (s.includes("casa")) return "#9b1b1e";
   if (s.includes("amazon")) return "#ff9900";
-  if (s.includes("shein")) return "#7b2cbf";
   return "#f97316";
 }
 

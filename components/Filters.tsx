@@ -34,7 +34,6 @@ export default function Filters({
           <option>Amazon</option>
           <option>eBay</option>
           <option>AliExpress</option>
-          <option>SHEIN</option>
         </select>
 
       </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import Footer from "@/components/Footer";
@@ -21,7 +22,6 @@ const NOMBRES: Record<string, string> = {
   amazon: "Amazon",
   ebay: "eBay",
   aliexpress: "AliExpress",
-  shein: "SHEIN",
   casadellibro: "Casa del Libro",
   mibro: "Mibro",
 };
@@ -57,13 +57,17 @@ function catKey(nombre: string): string {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const nombre = NOMBRES[slug.toLowerCase()] || slug;
+  const key = slug.toLowerCase();
+  const nombre = NOMBRES[key];
+  if (!nombre) {
+    return { title: "Tienda no encontrada" };
+  }
   return {
     // El layout ya añade " | Oferthis" con su plantilla de título.
     title: nombre,
     description: `Ofertas de ${nombre} en Oferthis`,
     alternates: {
-      canonical: `https://www.oferthis.com/tienda/${slug.toLowerCase()}`,
+      canonical: `https://www.oferthis.com/tienda/${key}`,
     },
   };
 }
@@ -73,7 +77,10 @@ export default async function TiendaPage({ params, searchParams }: Props) {
   const { q, orden, min, max, soloOfertas } = await searchParams;
   const tHome = await getTranslations("Home");
 
-  const nombreTienda = NOMBRES[slug.toLowerCase()] || slug;
+  const nombreTienda = NOMBRES[slug.toLowerCase()];
+  if (!nombreTienda) {
+    notFound();
+  }
 
   let productos = (await sql`
     SELECT * FROM productos
