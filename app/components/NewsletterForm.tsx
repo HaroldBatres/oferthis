@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export default function NewsletterForm() {
@@ -56,6 +57,14 @@ export default function NewsletterForm() {
             {loading ? t("sending") : t("submit")}
           </button>
         </form>
+
+        <p className="mt-3 text-xs text-gray-500">
+          {t("privacyNotice")}{" "}
+          <Link href="/privacidad" className="underline hover:text-orange-600">
+            {t("privacyLink")}
+          </Link>
+          .
+        </p>
 
         {mensaje && (
           <p className="mt-4 text-sm font-medium text-green-600">{mensaje}</p>

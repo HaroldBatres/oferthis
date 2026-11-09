@@ -19,22 +19,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://oferthis.com"),
+  metadataBase: new URL("https://www.oferthis.com"),
   title: {
-    default:
-      "Oferthis - Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN",
+    default: "Oferthis - Las mejores ofertas de Amazon, eBay, AliExpress y más",
     template: "%s | Oferthis",
   },
   description:
-    "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress, SHEIN y más.",
+    "Descubre las mejores ofertas y descuentos actualizados de Amazon, eBay, AliExpress y más.",
   openGraph: {
     title: "Oferthis - Las mejores ofertas",
     description:
-      "Ofertas reales de Amazon, eBay, AliExpress y SHEIN actualizadas automáticamente.",
-    url: "https://oferthis.com",
+      "Ofertas reales de Amazon, eBay, AliExpress y más tiendas actualizadas automáticamente.",
     siteName: "Oferthis",
     locale: "es_ES",
     type: "website",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1254,
+        height: 1254,
+        alt: "Oferthis",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Oferthis - Las mejores ofertas",
+    description:
+      "Ofertas reales de Amazon, eBay, AliExpress y más tiendas actualizadas automáticamente.",
+    images: ["/og-default.png"],
   },
   robots: { index: true, follow: true },
   other: {

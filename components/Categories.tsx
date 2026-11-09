@@ -18,7 +18,7 @@ const cats = [
   { name: "Bebidas y Alimentación", icon: "🍷", q: "bebidas" },
 ];
 
-const promos = [
+const todasLasPromos = [
   {
     title: "Halloween",
     text: "Disfraces y decoración.",
@@ -49,7 +49,15 @@ const promos = [
   },
 ];
 
-export default function Categories() {
+type CategoriesProps = {
+  // Halloween solo se muestra en octubre (lo decide la portada con la hora de Madrid)
+  mostrarHalloween?: boolean;
+};
+
+export default function Categories({ mostrarHalloween = false }: CategoriesProps) {
+  const promos = mostrarHalloween
+    ? todasLasPromos
+    : todasLasPromos.filter((p) => p.title !== "Halloween");
   const [i, setI] = useState(0);
 
   const catIconHoverStyles = `
@@ -73,9 +81,9 @@ export default function Categories() {
       setI((p) => (p + 1) % promos.length);
     }, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [promos.length]);
 
-  const promo = promos[i];
+  const promo = promos[i % promos.length];
 
   return (
     <section className="bg-[#070b16] px-4 py-4 md:px-8">

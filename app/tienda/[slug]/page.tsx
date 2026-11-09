@@ -59,8 +59,12 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const nombre = NOMBRES[slug.toLowerCase()] || slug;
   return {
-    title: `${nombre} | Oferthis`,
+    // El layout ya añade " | Oferthis" con su plantilla de título.
+    title: nombre,
     description: `Ofertas de ${nombre} en Oferthis`,
+    alternates: {
+      canonical: `https://www.oferthis.com/tienda/${slug.toLowerCase()}`,
+    },
   };
 }
 

@@ -52,10 +52,12 @@
     "submit": "Subscribe",
     "sending": "Sending...",
     "success": "Thanks! You are subscribed.",
-    "error": "Could not subscribe. Please try again."
+    "error": "Could not subscribe. Please try again.",
+    "privacyNotice": "By subscribing you agree to receive emails from Oferthis. More information in our",
+    "privacyLink": "privacy policy"
   },
   "Footer": {
-    "tagline": "The best deals from Amazon, eBay, AliExpress and SHEIN in one place.",
+    "tagline": "The best deals from Amazon, eBay, AliExpress and more stores in one place.",
     "categories": "Categories",
     "links": "Links",
     "home": "Home",

@@ -134,11 +134,14 @@ export default function ProductCard({ product }: { product: Producto }) {
           </span>
         )}
 
-        <span className="pointer-events-none absolute right-2 top-2 z-30 rounded-md border border-orange-500 bg-white px-1.5 py-1 text-[9px] font-extrabold leading-tight text-orange-500 shadow-[0_2px_8px_rgba(249,115,22,0.55)]">
-          OFERTA
-          <br />
-          OFERTHIS
-        </span>
+        {/* Solo se marca como oferta si hay un descuento real */}
+        {descuento > 0 && (
+          <span className="pointer-events-none absolute right-2 top-2 z-30 rounded-md border border-orange-500 bg-white px-1.5 py-1 text-[9px] font-extrabold leading-tight text-orange-500 shadow-[0_2px_8px_rgba(249,115,22,0.55)]">
+            OFERTA
+            <br />
+            OFERTHIS
+          </span>
+        )}
 
         <div className="absolute right-2 top-12 z-30">
           <FavoriteButton productId={id} />

@@ -16,16 +16,54 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+const SITE_URL = "https://www.oferthis.com";
+
+function tieneDescuento(descuento: unknown): boolean {
+  const n = parseInt(String(descuento ?? "").replace(/[^0-9]/g, ""), 10);
+  return !Number.isNaN(n) && n > 0;
+}
+
+function imagenAbsoluta(imagen: unknown): string | undefined {
+  const src = imagen ? String(imagen) : "";
+  if (!src) return undefined;
+  if (src.startsWith("http")) return src;
+  return `${SITE_URL}${src.startsWith("/") ? "" : "/"}${src}`;
+}
+
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const resultado = (await sql`
     SELECT * FROM productos WHERE id = ${Number(id)}
   `) as any;
   const producto = resultado[0];
-  if (!producto) return { title: "Producto no encontrado | Oferthis" };
+  // El layout ya añade " | Oferthis" con su plantilla de título.
+  if (!producto) return { title: "Producto no encontrado" };
+
+  const nombre = String(producto.nombre ?? "Producto");
+  const url = `${SITE_URL}/producto/${producto.id}`;
+  const description = `Oferta de ${nombre} en ${producto.tienda}. Precio: ${producto.precio}`;
+  const imagen = imagenAbsoluta(producto.imagen);
+  const images = imagen ? [{ url: imagen, alt: nombre }] : undefined;
+
   return {
-    title: `${producto.nombre} | Oferthis`,
-    description: `Oferta de ${producto.nombre} en ${producto.tienda}. Precio: ${producto.precio}`,
+    title: nombre,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: nombre,
+      description,
+      url,
+      siteName: "Oferthis",
+      locale: "es_ES",
+      type: "website",
+      ...(images ? { images } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: nombre,
+      description,
+      ...(imagen ? { images: [imagen] } : {}),
+    },
   };
 }
 
@@ -82,8 +120,40 @@ export default async function ProductoPage({ params }: Props) {
     ? descripcion.split(/\n+/).map((l) => l.trim()).filter(Boolean)
     : [];
 
+  const imagenLd = imagenAbsoluta(producto.imagen);
+  const jsonLd: Record<string, any> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: titulo,
+    url: `${SITE_URL}/producto/${producto.id}`,
+    ...(imagenLd ? { image: [imagenLd] } : {}),
+    ...(descripcion ? { description: descripcion.slice(0, 500) } : {}),
+    ...(producto.categoria ? { category: String(producto.categoria) } : {}),
+  };
+  if (precioActual > 0) {
+    jsonLd.offers = {
+      "@type": "Offer",
+      price: precioActual.toFixed(2),
+      priceCurrency: "EUR",
+      availability:
+        producto.disponible === false
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+      url: `${SITE_URL}/producto/${producto.id}`,
+      ...(producto.tienda
+        ? { seller: { "@type": "Organization", name: String(producto.tienda) } }
+        : {}),
+    };
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 bg-white text-gray-900">
         <BackToOffers />
 
@@ -116,7 +186,7 @@ export default async function ProductoPage({ params }: Props) {
           </div>
 
           <div className="order-3 min-w-0">
-            {producto.descuento ? (
+            {tieneDescuento(producto.descuento) ? (
               <span className="inline-block bg-red-500 text-white px-3 py-1 rounded text-sm font-bold">
                 {producto.descuento}
               </span>
