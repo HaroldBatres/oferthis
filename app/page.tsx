@@ -5,6 +5,28 @@ import ChollazosDelDia from "@/app/components/ChollazosDelDia";
 import StoreSection from "@/app/components/StoreSection";
 import NewsletterForm from "@/app/components/NewsletterForm";
 import Benefits from "@/components/Benefits";
+import Footer from "@/components/Footer";
+
+export const metadata = {
+  alternates: { canonical: "https://www.oferthis.com" },
+  openGraph: {
+    title: "Oferthis - Las mejores ofertas",
+    description:
+      "Ofertas reales de Amazon, eBay, AliExpress y más tiendas actualizadas automáticamente.",
+    url: "https://www.oferthis.com",
+    siteName: "Oferthis",
+    locale: "es_ES",
+    type: "website",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1254,
+        height: 1254,
+        alt: "Oferthis",
+      },
+    ],
+  },
+};
 
 export const revalidate = 60;
 
@@ -55,9 +77,38 @@ const SQL_MODA = `
   OR nombre ILIKE '%abrigo%'
 `;
 
+// Halloween solo se muestra en octubre (hora de Madrid). El resto del año
+// se ocultan los productos de Halloween de la portada (siguen en la base de datos).
+function sqlFiltroHalloween(mes: number) {
+  return mes === 10 ? "AND TRUE" : "AND nombre NOT ILIKE '%halloween%'";
+}
+
+function claveNombre(p: any) {
+  return String(p?.nombre ?? "").trim().toLowerCase();
+}
+
+// Quita de una fila los productos que ya salen en "Lo mejor de Oferthis hoy"
+// (o en filas anteriores) para no repetirlos en la misma portada.
+function sinRepetidos(lista: any[], vistos: Set<string>, max: number) {
+  const out: any[] = [];
+  for (const p of lista) {
+    const kId = `id:${p?.id}`;
+    const kNombre = `n:${claveNombre(p)}`;
+    if (vistos.has(kId) || (claveNombre(p) && vistos.has(kNombre))) continue;
+    out.push(p);
+    if (out.length >= max) break;
+  }
+  for (const p of out) {
+    vistos.add(`id:${p?.id}`);
+    if (claveNombre(p)) vistos.add(`n:${claveNombre(p)}`);
+  }
+  return out;
+}
+
 export default async function HomePage() {
   const mes = mesMadrid();
   const temp = sqlTemporada(mes);
+  const filtroHalloween = sqlFiltroHalloween(mes);
   const bucket = `
     CASE
       WHEN ${temp} THEN 'temp'
@@ -72,6 +123,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda ILIKE ${tiendaLike}
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
       ORDER BY nombre, descuento DESC NULLS LAST
@@ -105,6 +157,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda ILIKE ${tiendaLike}
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
       ORDER BY nombre, descuento DESC NULLS LAST
@@ -123,13 +176,13 @@ export default async function HomePage() {
     SELECT *
     FROM ranked
     WHERE
-      (bucket = 'temp' AND rn <= 4)
-      OR (bucket = 'moda' AND rn <= 4)
-      OR (bucket = 'resto' AND rn <= 2)
+      (bucket = 'temp' AND rn <= 8)
+      OR (bucket = 'moda' AND rn <= 8)
+      OR (bucket = 'resto' AND rn <= 4)
     ORDER BY
       CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
       descuento DESC NULLS LAST
-    LIMIT 10
+    LIMIT 20
   `;
 
   const [
@@ -155,6 +208,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda = 'Mibro'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND imagen <> ''
         AND (disponible = true OR disponible IS NULL)
         AND descuento IS NOT NULL
@@ -169,6 +223,7 @@ export default async function HomePage() {
       WHERE tienda ILIKE '%amazon%'
         AND nombre ILIKE '%joma%'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
       ORDER BY id DESC
       LIMIT 1
@@ -180,6 +235,7 @@ export default async function HomePage() {
         AND nombre ILIKE '%nike%'
         AND nombre ILIKE '%blanca%'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
       ORDER BY id DESC
       LIMIT 1
@@ -189,6 +245,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda = 'CasaDelLibro'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND imagen <> ''
       ORDER BY id DESC
       LIMIT 5
@@ -198,6 +255,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda ILIKE '%amazon%'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
       ORDER BY descuento DESC NULLS LAST, id DESC
@@ -210,16 +268,18 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda ILIKE '%amazon%'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
       ORDER BY descuento DESC NULLS LAST, id DESC
-      LIMIT 10
+      LIMIT 20
     `,
     sql`
       SELECT *
       FROM productos
       WHERE tienda = 'Mibro'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND imagen <> ''
         AND (disponible = true OR disponible IS NULL)
       ORDER BY 
@@ -227,13 +287,14 @@ export default async function HomePage() {
           WHEN descuento = '-0%' OR descuento IS NULL THEN 0
           ELSE CAST(REPLACE(REPLACE(descuento, '-', ''), '%', '') AS INTEGER)
         END DESC
-      LIMIT 10
+      LIMIT 20
     `,
     sql`
       SELECT DISTINCT ON (nombre) *
       FROM productos
       WHERE (disponible = true OR disponible IS NULL)
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND (
           tienda ILIKE '%casadellibro%'
           OR tienda ILIKE '%casa del libro%'
@@ -264,7 +325,7 @@ export default async function HomePage() {
           OR nombre ILIKE '%el secreto%'
         )
       ORDER BY nombre, id DESC
-      LIMIT 10
+      LIMIT 20
     `,
   ]);
 
@@ -275,6 +336,7 @@ export default async function HomePage() {
       FROM productos
       WHERE tienda = 'CasaDelLibro'
         AND imagen IS NOT NULL
+        ${sql.unsafe(filtroHalloween)}
         AND imagen <> ''
       ORDER BY id DESC
       LIMIT 10
@@ -316,38 +378,53 @@ export default async function HomePage() {
     ...libros5.slice(0, 5),
   ];
 
+  // Evitar que los productos de "Lo mejor de Oferthis hoy" se repitan abajo.
+  const vistos = new Set<string>();
+  for (const p of chollazos) {
+    vistos.add(`id:${p?.id}`);
+    if (claveNombre(p)) vistos.add(`n:${claveNombre(p)}`);
+  }
+  const amazonFila = sinRepetidos(amazon as any[], vistos, 10);
+  const ebayFila = sinRepetidos(ebay as any[], vistos, 10);
+  const aliexpressFila = sinRepetidos(aliexpress as any[], vistos, 10);
+  const mibroFila = sinRepetidos(mibro as any[], vistos, 10);
+  const librosFila = sinRepetidos(libros as any[], vistos, 10);
+
   return (
     <main className="min-h-screen bg-[#070b16]">
       <Hero />
-      <Categories />
+      <Categories mostrarHalloween={mes === 10} />
       <ChollazosAny products={chollazos} />
       <StoreSection
         title="Ofertas de Amazon"
         href="/tienda/amazon"
-        products={amazon as any[]}
+        products={amazonFila}
       />
       <StoreSection
         title="Ofertas de eBay"
         href="/tienda/ebay"
-        products={ebay as any[]}
+        products={ebayFila}
       />
       <StoreSection
         title="Ofertas de AliExpress"
         href="/tienda/aliexpress"
-        products={aliexpress as any[]}
+        products={aliexpressFila}
       />
-    <StoreSection
-  title="Ofertas de Mibro"
-  href="/tienda/mibro"
-  products={mibro as any[]}
-/>
+      <StoreSection
+        title="Ofertas de Mibro"
+        href="/tienda/mibro"
+        products={mibroFila}
+      />
       <StoreSection
         title="Ofertas de Casa del Libro"
         href="/buscar?q=libros"
-        products={libros as any[]}
+        products={librosFila}
       />
       <Benefits />
       <NewsletterForm />
+      <div className="mt-12">
+        <Footer />
+      </div>
     </main>
   );
 }

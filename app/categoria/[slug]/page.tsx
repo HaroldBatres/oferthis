@@ -27,8 +27,12 @@ export async function generateMetadata({ params }: Props) {
   const categoriaNombre = slug.charAt(0).toUpperCase() + slug.slice(1);
 
   return {
-    title: `Ofertas de ${categoriaNombre} | Oferthis`,
+    // El layout ya añade " | Oferthis" con su plantilla de título.
+    title: `Ofertas de ${categoriaNombre}`,
     description: `Descubre las mejores ofertas de ${categoriaNombre} en Amazon, eBay, AliExpress y más. Ahorra con Oferthis.`,
+    alternates: {
+      canonical: `https://www.oferthis.com/categoria/${slug}`,
+    },
   };
 }
 

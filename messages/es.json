@@ -53,10 +53,12 @@
     "submit": "Suscribirme",
     "sending": "Enviando...",
     "success": "¡Gracias! Te has suscrito correctamente.",
-    "error": "Error al suscribirse. Inténtalo de nuevo."
+    "error": "Error al suscribirse. Inténtalo de nuevo.",
+    "privacyNotice": "Al suscribirte aceptas recibir emails de Oferthis. Más información en nuestra",
+    "privacyLink": "política de privacidad"
   },
   "Footer": {
-    "tagline": "Las mejores ofertas de Amazon, eBay, AliExpress y SHEIN en un solo lugar.",
+    "tagline": "Las mejores ofertas de Amazon, eBay, AliExpress y más tiendas en un solo lugar.",
     "categories": "Categorías",
     "links": "Enlaces",
     "home": "Inicio",

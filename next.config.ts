@@ -8,6 +8,19 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // Dominio canónico: www.oferthis.com. La URL de producción de Vercel
+  // (oferthis.vercel.app) redirige aquí conservando ruta y parámetros.
+  // Las URLs de preview (oferthis-xxxx.vercel.app) y localhost no se tocan.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "oferthis.vercel.app" }],
+        destination: "https://www.oferthis.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
