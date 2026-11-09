@@ -1,16 +1,9 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import type { NextRequest } from "next/server";
 
-const isProtectedRoute = createRouteMatcher([
-  "/admin(.*)",
-  "/favoritos(.*)",
-]);
-
-const clerkHandler = clerkMiddleware(async (auth, request) => {
-  if (isProtectedRoute(request)) {
-    await auth.protect();
-  }
-});
+// Clerk sigue necesitando clerkMiddleware. La protección de /admin y
+// /favoritos (y APIs) se hace en cada página/ruta, no con createRouteMatcher.
+const clerkHandler = clerkMiddleware();
 
 export function proxy(request: NextRequest, event: any) {
   return clerkHandler(request, event);

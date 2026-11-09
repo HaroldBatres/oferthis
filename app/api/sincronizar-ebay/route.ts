@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { sql } from "../../lib/db";
 
+import { requireAdmin } from "../../lib/requireAdmin";
+
 async function getEbayToken() {
   const appId = process.env.EBAY_APP_ID;
   const certId = process.env.EBAY_CERT_ID;
@@ -159,6 +161,9 @@ const BUSQUEDAS = [
 ];
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const token = await getEbayToken();
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { requireAdmin } from "../../lib/requireAdmin";
 import { sql } from "../../lib/db";
 import {
   extraerIdAliExpress,
@@ -9,10 +9,8 @@ import {
 } from "../../services/aliexpress";
 
 export async function POST() {
-  const { userId } = await auth();
-  if (userId !== "user_3Hd21PlPrp9kabWnbxXrPCzlH0D") {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  const denied = await requireAdmin();
+  if (denied) return denied;
 
   const filas = (await sql`
     SELECT id, nombre, url FROM productos
