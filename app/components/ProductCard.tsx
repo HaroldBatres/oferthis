@@ -33,9 +33,6 @@ function tiendaStyle(tienda: string) {
   if (t.includes("casa")) {
     return { label: "Casa del Libro", className: "border-[#9b1b1e] text-[#9b1b1e]" };
   }
-  if (t.includes("shein")) {
-    return { label: "SHEIN", className: "border-[#7b2cbf] text-[#7b2cbf]" };
-  }
   return { label: tienda, className: "border-gray-400 text-gray-500" };
 }
 

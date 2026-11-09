@@ -7,6 +7,9 @@ import { sql } from "../../lib/db";
  * - URL genérica (home de tienda, no el anuncio)
  * - eBay sin /itm/ en la URL
  * - imágenes de prueba (picsum)
+ *
+ * Las homes de shein.com se mantienen aquí solo como limpieza defensiva
+ * por si quedan restos en la BD; SHEIN no se anuncia en el sitio.
  */
 export async function POST() {
   try {

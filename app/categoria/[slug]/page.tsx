@@ -155,16 +155,6 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
           >
             AliExpress
           </Link>
-          <Link
-            href={`/categoria/${slug}?tienda=SHEIN`}
-            className={`px-4 py-1.5 rounded-full text-sm border transition ${
-              tienda === "SHEIN"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "border-gray-200 hover:border-orange-400 hover:text-orange-500"
-            }`}
-          >
-            SHEIN
-          </Link>
         </div>
 
         <div className="mb-8 flex items-center gap-3">
