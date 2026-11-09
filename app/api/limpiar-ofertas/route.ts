@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { sql } from "../../lib/db";
 
+import { requireAdmin } from "../../lib/requireAdmin";
+
 /**
  * Marca como no disponibles:
  * - productos sin URL
@@ -12,6 +14,9 @@ import { sql } from "../../lib/db";
  * por si quedan restos en la BD; SHEIN no se anuncia en el sitio.
  */
 export async function POST() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const result = await sql`
       UPDATE productos

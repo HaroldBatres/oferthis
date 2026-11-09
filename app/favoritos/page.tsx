@@ -1,5 +1,4 @@
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
@@ -8,13 +7,10 @@ import Footer from "../../components/Footer";
 import FavoriteButton from "../components/FavoriteButton";
 
 export default async function FavoritosPage() {
-  const { userId } = await auth();
+  // auth.protect(): redirige a sign-in si no hay sesión (antes lo hacía el middleware)
+  const { userId } = await auth.protect();
   const t = await getTranslations("Favorites");
   const tCommon = await getTranslations("Common");
-
-  if (!userId) {
-    redirect("/");
-  }
 
   const favoritosIds = (await sql`
     SELECT product_id FROM favoritos WHERE user_id = ${userId}

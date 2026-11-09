@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { requireAdmin } from "../../lib/requireAdmin";
 import { sql } from "../../lib/db";
 import { searchAliExpress } from "../../services/aliexpress";
 
@@ -304,11 +304,8 @@ async function guardarProductos(keywords: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    const ADMIN_USER_ID = "user_3Hd21PlPrp9kabWnbxXrPCzlH0D";
-    if (!userId || userId !== ADMIN_USER_ID) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
+    const denied = await requireAdmin();
+    if (denied) return denied;
 
     const body = await request.json();
 

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { sql } from "../../lib/db";
 
+import { requireAdmin } from "../../lib/requireAdmin";
+
 const BUSQUEDAS = [
   { q: "zapatillas hombre oferta", categoria: "Moda" },
   { q: "sudadera hombre", categoria: "Moda" },
@@ -16,6 +18,9 @@ function dinero(n: unknown) {
 }
 
 export async function POST() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const clientId = process.env.AMAZON_CLIENT_ID || "";
     const clientSecret = process.env.AMAZON_CLIENT_SECRET || "";

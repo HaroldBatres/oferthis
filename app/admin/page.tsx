@@ -6,6 +6,7 @@ import CreateProductForm from "../components/CreateProductForm";
 import CaducarProductButton from "../components/CaducarProductButton";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { ADMIN_USER_ID } from "../lib/requireAdmin";
 import MarkUnavailableButton from "../components/MarkUnavailableButton";
 import EditProductButton from "../components/EditProductButton";
 import SyncEbayButton from "../components/SyncEbayButton";
@@ -28,11 +29,10 @@ const TIENDAS = [
 ] as const;
 
 export default async function AdminPage({ searchParams }: Props) {
-  const { userId } = await auth();
+  // auth.protect(): redirige a sign-in si no hay sesión (antes lo hacía el middleware)
+  const { userId } = await auth.protect();
 
-  const ADMIN_USER_ID = "user_3Hd21PlPrp9kabWnbxXrPCzlH0D";
-
-  if (!userId || userId !== ADMIN_USER_ID) {
+  if (userId !== ADMIN_USER_ID) {
     redirect("/");
   }
 

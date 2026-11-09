@@ -4,6 +4,8 @@ import zlib from "zlib";
 import { parse } from "csv-parse";
 import { Readable } from "stream";
 
+import { requireAdmin } from "../../lib/requireAdmin";
+
 const LIMITE_DESTACADOS = 400;
 const LIMITE_VARIOS = 300;
 
@@ -68,6 +70,9 @@ function imagenGrande(url: string) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const feedUrl = process.env.AWIN_FEED_URL;
     if (!feedUrl) {
