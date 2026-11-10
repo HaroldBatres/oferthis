@@ -408,8 +408,9 @@ export default async function HomePage() {
   ];
 
   // Evitar que los productos de "Lo mejor de Oferthis hoy" se repitan abajo.
+  // ChollazosDelDia solo pinta los 20 primeros: lo que queda fuera no cuenta como visto.
   const vistos = new Set<string>();
-  for (const p of chollazos) {
+  for (const p of chollazos.slice(0, 20)) {
     vistos.add(`id:${p?.id}`);
     if (claveNombre(p)) vistos.add(`n:${claveNombre(p)}`);
   }
