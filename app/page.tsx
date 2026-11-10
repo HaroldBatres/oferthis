@@ -34,6 +34,31 @@ const sql = neon(process.env.DATABASE_URL!);
 
 const ChollazosAny = ChollazosDelDia as any;
 
+// Descuento numérico seguro: "-35%" -> 35, "0%" / "-0%" / "" / NULL / basura -> 0.
+// Ordenar el texto tal cual ponía "0%" por delante de "-50%".
+const SQL_DESC_NUM = `COALESCE(LEFT(SUBSTRING(descuento FROM '[0-9]+'), 3)::INTEGER, 0)`;
+
+// Libros más vendidos ahora mismo (Casa del Libro / listas de ventas en España, noviembre 2026).
+// Solo cambia lo que enseña la portada; el resto del catálogo sigue disponible en la búsqueda.
+const LIBROS_MAS_VENDIDOS = [
+  "La hora antes del alba",
+  "Cosamala",
+  "La hipótesis más peligrosa",
+  "Una corte de armonía rota",
+  "Una familia moderna",
+  "Un hombre de honor",
+  "La añoranza",
+  "Contenta",
+  "Conversación con la oscuridad",
+  "Un día en la vida de Clarita",
+  "Hábitos atómicos",
+  "La psicología del dinero",
+  "Sin respeto",
+  "El día de la Trilla (Empíreo)",
+  "Verity. La sombra de un engaño",
+  "El hombre en busca de sentido",
+];
+
 function mesMadrid() {
   return Number(
     new Intl.DateTimeFormat("en-GB", {
@@ -126,7 +151,8 @@ export default async function HomePage() {
         ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
-      ORDER BY nombre, descuento DESC NULLS LAST
+        AND ${sql.unsafe(SQL_DESC_NUM)} > 0
+      ORDER BY nombre, ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
     ),
     tagged AS (
       SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
@@ -135,7 +161,7 @@ export default async function HomePage() {
       SELECT *,
         ROW_NUMBER() OVER (
           PARTITION BY bucket
-          ORDER BY descuento DESC NULLS LAST
+          ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
         ) AS rn
       FROM tagged
     )
@@ -147,7 +173,8 @@ export default async function HomePage() {
       OR (bucket = 'resto' AND rn <= 1)
     ORDER BY
       CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
-      descuento DESC NULLS LAST
+      ${sql.unsafe(SQL_DESC_NUM)} DESC,
+      id DESC
     LIMIT 5
   `;
 
@@ -160,7 +187,8 @@ export default async function HomePage() {
         ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
-      ORDER BY nombre, descuento DESC NULLS LAST
+        AND ${sql.unsafe(SQL_DESC_NUM)} > 0
+      ORDER BY nombre, ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
     ),
     tagged AS (
       SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
@@ -169,7 +197,7 @@ export default async function HomePage() {
       SELECT *,
         ROW_NUMBER() OVER (
           PARTITION BY bucket
-          ORDER BY descuento DESC NULLS LAST
+          ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
         ) AS rn
       FROM tagged
     )
@@ -181,7 +209,8 @@ export default async function HomePage() {
       OR (bucket = 'resto' AND rn <= 4)
     ORDER BY
       CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
-      descuento DESC NULLS LAST
+      ${sql.unsafe(SQL_DESC_NUM)} DESC,
+      id DESC
     LIMIT 20
   `;
 
@@ -242,12 +271,24 @@ export default async function HomePage() {
     `,
     sql`
       SELECT *
-      FROM productos
-      WHERE tienda = 'CasaDelLibro'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND imagen <> ''
-      ORDER BY id DESC
+      FROM (
+        SELECT DISTINCT ON (nombre) *
+        FROM productos
+        WHERE tienda = 'CasaDelLibro'
+          AND imagen IS NOT NULL
+          ${sql.unsafe(filtroHalloween)}
+          AND imagen <> ''
+          AND (disponible = true OR disponible IS NULL)
+          AND (
+            nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
+            OR ${sql.unsafe(SQL_DESC_NUM)} > 0
+          )
+        ORDER BY nombre, id DESC
+      ) l
+      ORDER BY
+        ${sql.unsafe(SQL_DESC_NUM)} DESC,
+        COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
+        id DESC
       LIMIT 5
     `,
     sql`
@@ -258,7 +299,7 @@ export default async function HomePage() {
         ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
-      ORDER BY descuento DESC NULLS LAST, id DESC
+      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
       LIMIT 15
     `,
     diezTienda("%ebay%"),
@@ -271,7 +312,7 @@ export default async function HomePage() {
         ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
-      ORDER BY descuento DESC NULLS LAST, id DESC
+      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
       LIMIT 20
     `,
     sql`
@@ -290,41 +331,28 @@ export default async function HomePage() {
       LIMIT 20
     `,
     sql`
-      SELECT DISTINCT ON (nombre) *
-      FROM productos
-      WHERE (disponible = true OR disponible IS NULL)
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND (
-          tienda ILIKE '%casadellibro%'
-          OR tienda ILIKE '%casa del libro%'
-        )
-        AND (
-          autor ILIKE '%Proctor%'
-          OR autor ILIKE '%Tracy%'
-          OR autor ILIKE '%Robbins%'
-          OR autor ILIKE '%Rohn%'
-          OR autor ILIKE '%Burchard%'
-          OR autor ILIKE '%Hill%'
-          OR autor ILIKE '%Sharma%'
-          OR autor ILIKE '%Ferriss%'
-          OR autor ILIKE '%Kiyosaki%'
-          OR autor ILIKE '%Hicks%'
-          OR autor ILIKE '%Byrne%'
-          OR autor ILIKE '%Canfield%'
-          OR autor ILIKE '%Bourbeau%'
-          OR autor ILIKE '%Orihuela%'
-          OR autor ILIKE '%Bradshaw%'
-          OR nombre ILIKE '%Kiyosaki%'
-          OR nombre ILIKE '%Napoleon Hill%'
-          OR nombre ILIKE '%Robin Sharma%'
-          OR nombre ILIKE '%Tony Robbins%'
-          OR nombre ILIKE '%Brian Tracy%'
-          OR nombre ILIKE '%padre rico%'
-          OR nombre ILIKE '%monje que vendio%'
-          OR nombre ILIKE '%el secreto%'
-        )
-      ORDER BY nombre, id DESC
+      SELECT *
+      FROM (
+        SELECT DISTINCT ON (nombre) *
+        FROM productos
+        WHERE (disponible = true OR disponible IS NULL)
+          AND imagen IS NOT NULL
+          AND imagen <> ''
+          ${sql.unsafe(filtroHalloween)}
+          AND (
+            tienda ILIKE '%casadellibro%'
+            OR tienda ILIKE '%casa del libro%'
+          )
+          AND (
+            nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
+            OR ${sql.unsafe(SQL_DESC_NUM)} > 0
+          )
+        ORDER BY nombre, id DESC
+      ) l
+      ORDER BY
+        ${sql.unsafe(SQL_DESC_NUM)} DESC,
+        COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
+        id DESC
       LIMIT 20
     `,
   ]);
@@ -338,6 +366,7 @@ export default async function HomePage() {
         AND imagen IS NOT NULL
         ${sql.unsafe(filtroHalloween)}
         AND imagen <> ''
+        AND (disponible = true OR disponible IS NULL)
       ORDER BY id DESC
       LIMIT 10
     `) as any[];
