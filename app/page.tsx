@@ -80,8 +80,8 @@ function sqlTemporada(mes: number) {
     8: `nombre ILIKE '%verano%' OR nombre ILIKE '%mochila%' OR nombre ILIKE '%escolar%'`,
     9: `nombre ILIKE '%sudadera%' OR nombre ILIKE '%hoodie%' OR nombre ILIKE '%zapato%' OR nombre ILIKE '%zapatilla%' OR nombre ILIKE '%bota%' OR nombre ILIKE '%abrigo%' OR nombre ILIKE '%chaqueta%'`,
     10: `nombre ILIKE '%halloween%' OR nombre ILIKE '%disfraz%' OR nombre ILIKE '%calabaza%' OR nombre ILIKE '%pumpkin%' OR nombre ILIKE '%fantasma%'`,
-    11: `nombre ILIKE '%portatil%' OR nombre ILIKE '%movil%' OR nombre ILIKE '%smartphone%' OR nombre ILIKE '%tablet%' OR nombre ILIKE '%tv %' OR nombre ILIKE '%television%' OR nombre ILIKE '%playstation%' OR nombre ILIKE '%xbox%' OR nombre ILIKE '%consola%'`,
-    12: `nombre ILIKE '%navidad%' OR nombre ILIKE '%regalo%' OR nombre ILIKE '%arbol%' OR nombre ILIKE '%smartwatch%' OR nombre ILIKE '%auricular%'`,
+    11: `nombre ~* '(black friday|navidad|navideñ|regalo|lego|juguete|invierno|abrigo|plum[ií]fero|chaqueta|parka|manta|calefact|t[eé]rmic|bufanda|guantes|gorro|botas?( |$)|port[aá]til|m[oó]vil|smartphone|tablet|smart ?tv|televis|qled|oled|consola|playstation|ps5|xbox|nintendo|switch 2|mando|auricular|smartwatch|reloj inteligente|freidora|aspirador|luces)'`,
+    12: `nombre ~* '(navidad|navideñ|regalo|reyes|invierno|abrigo|plum[ií]fero|manta|calefact|t[eé]rmic|bufanda|guantes|gorro|juguete|lego|perfume|consola|playstation|ps5|xbox|nintendo|switch 2|mando|auricular|smartwatch|reloj inteligente|tablet|port[aá]til|m[oó]vil|smartphone|smart ?tv|luces|[aá]rbol)'`,
   };
   return mapa[mes] || mapa[9];
 }
@@ -142,17 +142,21 @@ export default async function HomePage() {
     END
   `;
 
-  const cincoTienda = (tiendaLike: string) => sql`
+  // Solo chollos reales: con imagen, visibles, sin pruebas, precio > 0 y descuento numérico > 0.
+  // Un producto por nombre (el de mayor descuento). Temporada primero, luego moda, luego el resto.
+  const filaTienda = (tiendaLike: string, cupos: [number, number, number], limite: number) => sql`
     WITH base AS (
-      SELECT DISTINCT ON (nombre) *
+      SELECT DISTINCT ON (lower(trim(nombre))) *
       FROM productos
       WHERE tienda ILIKE ${tiendaLike}
         AND imagen IS NOT NULL
+        AND imagen <> ''
         ${sql.unsafe(filtroHalloween)}
         AND (disponible = true OR disponible IS NULL)
         AND nombre NOT ILIKE '%prueba%'
         AND ${sql.unsafe(SQL_DESC_NUM)} > 0
-      ORDER BY nombre, ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
+        AND ${sql.unsafe(SQL_DESC_NUM)} < 90
+      ORDER BY lower(trim(nombre)), ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
     ),
     tagged AS (
       SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
@@ -168,167 +172,31 @@ export default async function HomePage() {
     SELECT *
     FROM ranked
     WHERE
-      (bucket = 'temp' AND rn <= 2)
-      OR (bucket = 'moda' AND rn <= 2)
-      OR (bucket = 'resto' AND rn <= 1)
+      (bucket = 'temp' AND rn <= ${cupos[0]})
+      OR (bucket = 'moda' AND rn <= ${cupos[1]})
+      OR (bucket = 'resto' AND rn <= ${cupos[2]})
     ORDER BY
       CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
       ${sql.unsafe(SQL_DESC_NUM)} DESC,
       id DESC
-    LIMIT 5
+    LIMIT ${limite}
   `;
 
-  const diezTienda = (tiendaLike: string) => sql`
-    WITH base AS (
-      SELECT DISTINCT ON (nombre) *
+  const [amazon, aliexpress, ebay, mibro, libros] = await Promise.all([
+    // Amazon: escaparate de temporada (Black Friday / invierno / Navidad), todo lo que tenga descuento real.
+    filaTienda("%amazon%", [15, 15, 15], 15),
+    filaTienda("%aliexpress%", [12, 8, 5], 25),
+    filaTienda("%ebay%", [12, 8, 5], 25),
+    sql`
+      SELECT DISTINCT ON (${sql.unsafe(SQL_DESC_NUM)}, lower(trim(nombre))) *
       FROM productos
-      WHERE tienda ILIKE ${tiendaLike}
+      WHERE tienda = 'Mibro'
         AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
+        AND imagen <> ''
         AND (disponible = true OR disponible IS NULL)
-        AND nombre NOT ILIKE '%prueba%'
         AND ${sql.unsafe(SQL_DESC_NUM)} > 0
-      ORDER BY nombre, ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-    ),
-    tagged AS (
-      SELECT *, ${sql.unsafe(bucket)} AS bucket FROM base
-    ),
-    ranked AS (
-      SELECT *,
-        ROW_NUMBER() OVER (
-          PARTITION BY bucket
-          ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-        ) AS rn
-      FROM tagged
-    )
-    SELECT *
-    FROM ranked
-    WHERE
-      (bucket = 'temp' AND rn <= 8)
-      OR (bucket = 'moda' AND rn <= 8)
-      OR (bucket = 'resto' AND rn <= 4)
-    ORDER BY
-      CASE bucket WHEN 'temp' THEN 0 WHEN 'moda' THEN 1 ELSE 2 END,
-      ${sql.unsafe(SQL_DESC_NUM)} DESC,
-      id DESC
-    LIMIT 20
-  `;
-
-  const [
-    ebay5,
-    ali5,
-    amazon5,
-    mibro5,
-    joma,
-    nikeBlanca,
-    librosRaw,
-    amazonExtra,
-    ebay,
-    aliexpress,
-    amazon,
-    mibro,
-    libros,
-  ] = await Promise.all([
-    cincoTienda("%ebay%"),
-    cincoTienda("%aliexpress%"),
-    cincoTienda("%amazon%"),
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda = 'Mibro'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND imagen <> ''
-        AND (disponible = true OR disponible IS NULL)
-        AND descuento IS NOT NULL
-        AND descuento <> '-0%'
-      ORDER BY 
-        CAST(REPLACE(REPLACE(descuento, '-', ''), '%', '') AS INTEGER) DESC
-      LIMIT 5
-    `,
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda ILIKE '%amazon%'
-        AND nombre ILIKE '%joma%'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND (disponible = true OR disponible IS NULL)
-      ORDER BY id DESC
-      LIMIT 1
-    `,
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda ILIKE '%amazon%'
-        AND nombre ILIKE '%nike%'
-        AND nombre ILIKE '%blanca%'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND (disponible = true OR disponible IS NULL)
-      ORDER BY id DESC
-      LIMIT 1
-    `,
-    sql`
-      SELECT *
-      FROM (
-        SELECT DISTINCT ON (nombre) *
-        FROM productos
-        WHERE tienda = 'CasaDelLibro'
-          AND imagen IS NOT NULL
-          ${sql.unsafe(filtroHalloween)}
-          AND imagen <> ''
-          AND (disponible = true OR disponible IS NULL)
-          AND (
-            nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
-            OR ${sql.unsafe(SQL_DESC_NUM)} > 0
-          )
-        ORDER BY nombre, id DESC
-      ) l
-      ORDER BY
-        ${sql.unsafe(SQL_DESC_NUM)} DESC,
-        COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
-        id DESC
-      LIMIT 5
-    `,
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda ILIKE '%amazon%'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND (disponible = true OR disponible IS NULL)
-        AND nombre NOT ILIKE '%prueba%'
-      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-      LIMIT 15
-    `,
-    diezTienda("%ebay%"),
-    diezTienda("%aliexpress%"),
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda ILIKE '%amazon%'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND (disponible = true OR disponible IS NULL)
-        AND nombre NOT ILIKE '%prueba%'
-      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-      LIMIT 20
-    `,
-    sql`
-      SELECT *
-      FROM productos
-      WHERE tienda = 'Mibro'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND imagen <> ''
-        AND (disponible = true OR disponible IS NULL)
-      ORDER BY 
-        CASE 
-          WHEN descuento = '-0%' OR descuento IS NULL THEN 0
-          ELSE CAST(REPLACE(REPLACE(descuento, '-', ''), '%', '') AS INTEGER)
-        END DESC
-      LIMIT 20
+      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, lower(trim(nombre)), id DESC
+      LIMIT 25
     `,
     sql`
       SELECT *
@@ -338,11 +206,7 @@ export default async function HomePage() {
         WHERE (disponible = true OR disponible IS NULL)
           AND imagen IS NOT NULL
           AND imagen <> ''
-          ${sql.unsafe(filtroHalloween)}
-          AND (
-            tienda ILIKE '%casadellibro%'
-            OR tienda ILIKE '%casa del libro%'
-          )
+          AND tienda = 'CasaDelLibro'
           AND (
             nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
             OR ${sql.unsafe(SQL_DESC_NUM)} > 0
@@ -353,82 +217,42 @@ export default async function HomePage() {
         ${sql.unsafe(SQL_DESC_NUM)} DESC,
         COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
         id DESC
-      LIMIT 20
+      LIMIT 25
     `,
   ]);
 
-  let libros5 = librosRaw as any[];
-  if (libros5.length < 5) {
-    const extra = (await sql`
-      SELECT *
-      FROM productos
-      WHERE tienda = 'CasaDelLibro'
-        AND imagen IS NOT NULL
-        ${sql.unsafe(filtroHalloween)}
-        AND imagen <> ''
-        AND (disponible = true OR disponible IS NULL)
-      ORDER BY id DESC
-      LIMIT 10
-    `) as any[];
-    const ids = new Set(libros5.map((p) => p.id));
-    for (const p of extra) {
-      if (!ids.has(p.id)) {
-        libros5.push(p);
-        if (libros5.length >= 5) break;
-      }
-    }
-  }
-
-  const fijados = [...(joma as any[]), ...(nikeBlanca as any[])];
-  const idsFijados = new Set(fijados.map((p) => p.id));
-
-  let amazonChollos = [
-    ...fijados,
-    ...(amazon5 as any[]).filter((p) => !idsFijados.has(p.id)),
-  ];
-
-  if (amazonChollos.length < 5) {
-    const ids = new Set(amazonChollos.map((p) => p.id));
-    for (const p of amazonExtra as any[]) {
-      if (!ids.has(p.id)) {
-        amazonChollos.push(p);
-        if (amazonChollos.length >= 5) break;
-      }
-    }
-  }
-
-  amazonChollos = amazonChollos.slice(0, 5);
-
-  const chollazos = [
-    ...amazonChollos,
-    ...(ebay5 as any[]).slice(0, 5),
-    ...(ali5 as any[]).slice(0, 5),
-    ...(mibro5 as any[]).slice(0, 5),
-    ...libros5.slice(0, 5),
-  ];
-
-  // Evitar que los productos de "Lo mejor de Oferthis hoy" se repitan abajo.
-  // ChollazosDelDia solo pinta los 20 primeros: lo que queda fuera no cuenta como visto.
+  // Orden fijo de la portada: Amazon (temporada) arriba y destacado, luego
+  // "Lo mejor de Oferthis hoy" con lo mejor del resto de tiendas, y una fila por marketplace.
   const vistos = new Set<string>();
-  for (const p of chollazos.slice(0, 20)) {
-    vistos.add(`id:${p?.id}`);
-    if (claveNombre(p)) vistos.add(`n:${claveNombre(p)}`);
+  const amazonFila = sinRepetidos(amazon as any[], vistos, 15);
+
+  const chollazos: any[] = [];
+  for (const lista of [aliexpress, ebay, mibro, libros] as any[][]) {
+    chollazos.push(...sinRepetidos(lista, vistos, 5));
   }
-  const amazonFila = sinRepetidos(amazon as any[], vistos, 10);
-  const ebayFila = sinRepetidos(ebay as any[], vistos, 10);
+
   const aliexpressFila = sinRepetidos(aliexpress as any[], vistos, 10);
+  const ebayFila = sinRepetidos(ebay as any[], vistos, 10);
   const mibroFila = sinRepetidos(mibro as any[], vistos, 10);
   const librosFila = sinRepetidos(libros as any[], vistos, 10);
+
+  const tituloAmazon =
+    mes === 11 ? "Black Friday en Amazon" : mes === 12 ? "Regalos de Navidad en Amazon" : "Ofertas de Amazon";
 
   return (
     <main className="min-h-screen bg-[#070b16]">
       <Hero />
-      <Categories mostrarHalloween={mes === 10} />
-      <ChollazosAny products={chollazos} />
+      <Categories mostrarHalloween={mes === 10} mes={mes} />
       <StoreSection
-        title="Ofertas de Amazon"
+        title={tituloAmazon}
         href="/tienda/amazon"
         products={amazonFila}
+      />
+      <ChollazosAny products={chollazos} />
+      <StoreSection
+        title="Ofertas de AliExpress"
+        href="/tienda/aliexpress"
+        products={aliexpressFila}
       />
       <StoreSection
         title="Ofertas de eBay"
@@ -436,18 +260,13 @@ export default async function HomePage() {
         products={ebayFila}
       />
       <StoreSection
-        title="Ofertas de AliExpress"
-        href="/tienda/aliexpress"
-        products={aliexpressFila}
-      />
-      <StoreSection
         title="Ofertas de Mibro"
         href="/tienda/mibro"
         products={mibroFila}
       />
       <StoreSection
-        title="Ofertas de Casa del Libro"
-        href="/buscar?q=libros"
+        title="Libros más vendidos en Casa del Libro"
+        href="/tienda/casadellibro"
         products={librosFila}
       />
       <Benefits />
