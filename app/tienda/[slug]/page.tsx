@@ -26,6 +26,25 @@ const NOMBRES: Record<string, string> = {
   mibro: "Mibro",
 };
 
+// Valor exacto de la columna "tienda" en la base de datos.
+const TIENDA_DB: Record<string, string> = {
+  amazon: "Amazon",
+  ebay: "eBay",
+  aliexpress: "AliExpress",
+  casadellibro: "CasaDelLibro",
+  mibro: "Mibro",
+};
+
+// Descuento numérico seguro: "-35%" -> 35, "0%" / "" / NULL -> 0.
+const SQL_DESC_NUM = `COALESCE(LEFT(SUBSTRING(descuento FROM '[0-9]+'), 3)::INTEGER, 0)`;
+
+// Productos que se enseñan por categoría antes de "Ver todos".
+const POR_CATEGORIA = 20;
+
+function slugCategoria(cat: string) {
+  return cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function parsePrecio(p: string): number {
   return (
     parseFloat(
@@ -82,12 +101,22 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     notFound();
   }
 
+  const slugKey = slug.toLowerCase();
+  const tiendaDb = TIENDA_DB[slugKey];
+
+  // Un producto por nombre (el de mayor descuento real), primero las ofertas con más descuento.
   let productos = (await sql`
-    SELECT * FROM productos
-    WHERE tienda ILIKE ${"%" + nombreTienda + "%"}
-      AND (disponible = true OR disponible IS NULL)
-      AND imagen IS NOT NULL
-    ORDER BY descuento DESC NULLS LAST, id DESC
+    SELECT * FROM (
+      SELECT DISTINCT ON (lower(trim(nombre))) *
+      FROM productos
+      WHERE tienda = ${tiendaDb}
+        AND (disponible = true OR disponible IS NULL)
+        AND imagen IS NOT NULL
+        AND imagen <> ''
+        AND nombre NOT ILIKE '%prueba%'
+      ORDER BY lower(trim(nombre)), ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
+    ) t
+    ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
   `) as any[];
 
   if (q) {
@@ -133,7 +162,13 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     if (!porCategoria[cat]) porCategoria[cat] = [];
     porCategoria[cat].push(p);
   }
-  const categorias = Object.keys(porCategoria).sort();
+  // Categorías con más productos primero; "Otros" siempre al final.
+  const categorias = Object.keys(porCategoria).sort((a, b) => {
+    if (a === "Otros") return 1;
+    if (b === "Otros") return -1;
+    return porCategoria[b].length - porCategoria[a].length || a.localeCompare(b, "es");
+  });
+  const filtrando = Boolean(q || min || max);
 
   return (
     <>
@@ -208,7 +243,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                     {titulo}
                   </h2>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {porCategoria[cat].map((p: any) => (
+                    {(filtrando ? porCategoria[cat] : porCategoria[cat].slice(0, POR_CATEGORIA)).map((p: any) => (
                       <Link
                         key={p.id}
                         href={`/producto/${p.id}`}
@@ -240,6 +275,14 @@ export default async function TiendaPage({ params, searchParams }: Props) {
                       </Link>
                     ))}
                   </div>
+                  {!filtrando && porCategoria[cat].length > POR_CATEGORIA && (
+                    <Link
+                      href={`/categoria/${slugCategoria(cat)}?tienda=${encodeURIComponent(tiendaDb)}&orden=descuento`}
+                      className="mt-4 inline-block text-sm font-semibold text-orange-400 hover:text-orange-300"
+                    >
+                      Ver los {porCategoria[cat].length} productos de {titulo} →
+                    </Link>
+                  )}
                 </div>
               );
             })}

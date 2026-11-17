@@ -18,13 +18,31 @@ const cats = [
   { name: "Bebidas y Alimentación", icon: "🍷", q: "bebidas" },
 ];
 
+// "meses": meses (1-12, hora de Madrid) en los que se enseña la promo. Sin "meses" = todo el año.
 const todasLasPromos = [
+  {
+    title: "Black Friday",
+    text: "Chollos reales de Amazon.",
+    href: "/tienda/amazon",
+    bg: "from-zinc-800 to-black",
+    emoji: "🖤",
+    meses: [11],
+  },
+  {
+    title: "Regalos de Navidad",
+    text: "Ideas para regalar.",
+    href: "/buscar?q=regalo",
+    bg: "from-red-600 to-green-900",
+    emoji: "🎁",
+    meses: [11, 12, 1],
+  },
   {
     title: "Halloween",
     text: "Disfraces y decoración.",
     href: "/buscar?q=halloween",
     bg: "from-orange-600 to-purple-900",
     emoji: "🎃",
+    meses: [10],
   },
   {
     title: "Moda otoño",
@@ -32,6 +50,15 @@ const todasLasPromos = [
     href: "/buscar?q=sudadera",
     bg: "from-sky-600 to-slate-900",
     emoji: "🧥",
+    meses: [9, 10],
+  },
+  {
+    title: "Invierno",
+    text: "Abrigos, botas y mantas.",
+    href: "/buscar?q=abrigo",
+    bg: "from-sky-600 to-slate-900",
+    emoji: "🧥",
+    meses: [11, 12, 1, 2],
   },
   {
     title: "Tecnología",
@@ -42,8 +69,8 @@ const todasLasPromos = [
   },
   {
     title: "Libros",
-    text: "Casa del Libro.",
-    href: "/buscar?q=libros",
+    text: "Los más vendidos de Casa del Libro.",
+    href: "/tienda/casadellibro",
     bg: "from-rose-600 to-red-950",
     emoji: "📚",
   },
@@ -52,12 +79,17 @@ const todasLasPromos = [
 type CategoriesProps = {
   // Halloween solo se muestra en octubre (lo decide la portada con la hora de Madrid)
   mostrarHalloween?: boolean;
+  // Mes actual (1-12, hora de Madrid) para enseñar solo las promos de temporada
+  mes?: number;
 };
 
-export default function Categories({ mostrarHalloween = false }: CategoriesProps) {
-  const promos = mostrarHalloween
-    ? todasLasPromos
-    : todasLasPromos.filter((p) => p.title !== "Halloween");
+export default function Categories({ mostrarHalloween = false, mes }: CategoriesProps) {
+  const promos = todasLasPromos.filter((p) => {
+    if (p.title === "Halloween") return mostrarHalloween;
+    if (!p.meses) return true;
+    if (!mes) return false;
+    return p.meses.includes(mes);
+  });
   const [i, setI] = useState(0);
 
   const catIconHoverStyles = `
