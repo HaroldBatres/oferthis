@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import FavoriteButton from "../../components/FavoriteButton";
 import DiscountBadge from "../../components/DiscountBadge";
 import { sql } from "../../lib/db";
+import { cached, CACHE_LISTADO_S } from "../../lib/cache";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -105,19 +106,7 @@ export default async function TiendaPage({ params, searchParams }: Props) {
   const tiendaDb = TIENDA_DB[slugKey];
 
   // Un producto por nombre (el de mayor descuento real), primero las ofertas con más descuento.
-  let productos = (await sql`
-    SELECT * FROM (
-      SELECT DISTINCT ON (lower(trim(nombre))) *
-      FROM productos
-      WHERE tienda = ${tiendaDb}
-        AND (disponible = true OR disponible IS NULL)
-        AND imagen IS NOT NULL
-        AND imagen <> ''
-        AND nombre NOT ILIKE '%prueba%'
-      ORDER BY lower(trim(nombre)), ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-    ) t
-    ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
-  `) as any[];
+  let productos = [...(await getProductosTienda(tiendaDb))];
 
   if (q) {
     const ql = q.toLowerCase();
@@ -293,3 +282,22 @@ export default async function TiendaPage({ params, searchParams }: Props) {
     </>
   );
 }
+// Listado por tienda cacheado unos minutos (la consulta es pesada: DISTINCT + orden por descuento).
+const getProductosTienda = cached(
+  async (tiendaDb: string) =>
+    (await sql`
+    SELECT * FROM (
+      SELECT DISTINCT ON (lower(trim(nombre))) *
+      FROM productos
+      WHERE tienda = ${tiendaDb}
+        AND (disponible = true OR disponible IS NULL)
+        AND imagen IS NOT NULL
+        AND imagen <> ''
+        AND nombre NOT ILIKE '%prueba%'
+      ORDER BY lower(trim(nombre)), ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
+    ) t
+    ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, id DESC
+    `) as any[],
+  "productos-tienda",
+  CACHE_LISTADO_S,
+);

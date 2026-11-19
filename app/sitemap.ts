@@ -1,13 +1,25 @@
 import type { MetadataRoute } from "next";
 import { sql } from "./lib/db";
+import { cached } from "./lib/cache";
+
+// Se genera al pedirlo (no en el build, que no tiene acceso a la base de datos)
+// y se cachea 1 hora.
+export const dynamic = "force-dynamic";
+
+const getIdsProductos = cached(
+  async () =>
+    (await sql`
+      SELECT id FROM productos
+      WHERE disponible = true OR disponible IS NULL
+    `) as any[],
+  "sitemap-ids",
+  3600,
+);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.oferthis.com";
 
-  const productos = (await sql`
-    SELECT id FROM productos
-    WHERE disponible = true OR disponible IS NULL
-  `) as any[];
+  const productos = await getIdsProductos();
 
   const categorias = [
     "tecnologia",

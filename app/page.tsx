@@ -6,6 +6,7 @@ import StoreSection from "@/app/components/StoreSection";
 import NewsletterForm from "@/app/components/NewsletterForm";
 import Benefits from "@/components/Benefits";
 import Footer from "@/components/Footer";
+import { cached, CACHE_PORTADA_S } from "@/app/lib/cache";
 
 export const metadata = {
   alternates: { canonical: "https://www.oferthis.com" },
@@ -182,44 +183,51 @@ export default async function HomePage() {
     LIMIT ${limite}
   `;
 
-  const [amazon, aliexpress, ebay, mibro, libros] = await Promise.all([
-    // Amazon: escaparate de temporada (Black Friday / invierno / Navidad), todo lo que tenga descuento real.
-    filaTienda("%amazon%", [15, 15, 15], 15),
-    filaTienda("%aliexpress%", [12, 8, 5], 25),
-    filaTienda("%ebay%", [12, 8, 5], 25),
-    sql`
-      SELECT DISTINCT ON (${sql.unsafe(SQL_DESC_NUM)}, lower(trim(nombre))) *
-      FROM productos
-      WHERE tienda = 'Mibro'
-        AND imagen IS NOT NULL
-        AND imagen <> ''
-        AND (disponible = true OR disponible IS NULL)
-        AND ${sql.unsafe(SQL_DESC_NUM)} > 0
-      ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, lower(trim(nombre)), id DESC
-      LIMIT 25
-    `,
-    sql`
-      SELECT *
-      FROM (
-        SELECT DISTINCT ON (nombre) *
-        FROM productos
-        WHERE (disponible = true OR disponible IS NULL)
-          AND imagen IS NOT NULL
-          AND imagen <> ''
-          AND tienda = 'CasaDelLibro'
-          AND (
-            nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
-            OR ${sql.unsafe(SQL_DESC_NUM)} > 0
-          )
-        ORDER BY nombre, id DESC
-      ) l
-      ORDER BY
-        ${sql.unsafe(SQL_DESC_NUM)} DESC,
-        COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
-        id DESC
-      LIMIT 25
-    `,
-  ]);
+  // Las 5 filas de la portada se cachean unos minutos (clave: mes, que decide la temporada).
+  // Así no se lanzan 5 consultas pesadas a Neon en cada visita.
+  const cargarPortada = cached(
+    async (_mes: number) => (await Promise.all([
+        // Amazon: escaparate de temporada (Black Friday / invierno / Navidad), todo lo que tenga descuento real.
+        filaTienda("%amazon%", [15, 15, 15], 15),
+        filaTienda("%aliexpress%", [12, 8, 5], 25),
+        filaTienda("%ebay%", [12, 8, 5], 25),
+        sql`
+          SELECT DISTINCT ON (${sql.unsafe(SQL_DESC_NUM)}, lower(trim(nombre))) *
+          FROM productos
+          WHERE tienda = 'Mibro'
+            AND imagen IS NOT NULL
+            AND imagen <> ''
+            AND (disponible = true OR disponible IS NULL)
+            AND ${sql.unsafe(SQL_DESC_NUM)} > 0
+          ORDER BY ${sql.unsafe(SQL_DESC_NUM)} DESC, lower(trim(nombre)), id DESC
+          LIMIT 25
+        `,
+        sql`
+          SELECT *
+          FROM (
+            SELECT DISTINCT ON (nombre) *
+            FROM productos
+            WHERE (disponible = true OR disponible IS NULL)
+              AND imagen IS NOT NULL
+              AND imagen <> ''
+              AND tienda = 'CasaDelLibro'
+              AND (
+                nombre = ANY(${LIBROS_MAS_VENDIDOS}::text[])
+                OR ${sql.unsafe(SQL_DESC_NUM)} > 0
+              )
+            ORDER BY nombre, id DESC
+          ) l
+          ORDER BY
+            ${sql.unsafe(SQL_DESC_NUM)} DESC,
+            COALESCE(array_position(${LIBROS_MAS_VENDIDOS}::text[], nombre), 999),
+            id DESC
+          LIMIT 25
+        `,
+    ])) as any[][],
+    "portada-filas-v1",
+    CACHE_PORTADA_S,
+  );
+  const [amazon, aliexpress, ebay, mibro, libros] = await cargarPortada(mes);
 
   // Orden fijo de la portada: Amazon (temporada) arriba y destacado, luego
   // "Lo mejor de Oferthis hoy" con lo mejor del resto de tiendas, y una fila por marketplace.

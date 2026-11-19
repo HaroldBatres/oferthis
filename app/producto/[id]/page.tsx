@@ -3,6 +3,29 @@ import Image from "next/image";
 import ShareButton from "../../components/ShareButton";
 import Footer from "../../../components/Footer";
 import { sql } from "../../lib/db";
+import { cache } from "react";
+import { cached, CACHE_PRODUCTO_S } from "../../lib/cache";
+
+// Una sola consulta por producto, compartida entre generateMetadata y la página, y cacheada unos minutos.
+const getProductoCached = cached(
+  async (id: number) => (await sql`SELECT * FROM productos WHERE id = ${id}`) as any[],
+  "producto-por-id",
+  CACHE_PRODUCTO_S,
+);
+const getProducto = cache(async (id: number) => (await getProductoCached(id))[0]);
+
+const getRelacionados = cached(
+  async (categoria: string, id: number) =>
+    (await sql`
+      SELECT * FROM productos
+      WHERE categoria = ${categoria}
+        AND id != ${id}
+        AND (disponible = true OR disponible IS NULL)
+      LIMIT 4
+    `) as any[],
+  "producto-relacionados",
+  CACHE_PRODUCTO_S,
+);
 import PriceAlertButton from "../../components/PriceAlertButton";
 import VoteButtons from "../../components/VoteButtons";
 import Comments from "../../components/Comments";
@@ -32,10 +55,7 @@ function imagenAbsoluta(imagen: unknown): string | undefined {
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const resultado = (await sql`
-    SELECT * FROM productos WHERE id = ${Number(id)}
-  `) as any;
-  const producto = resultado[0];
+  const producto: any = await getProducto(Number(id));
   // El layout ya añade " | Oferthis" con su plantilla de título.
   if (!producto) return { title: "Producto no encontrado" };
 
@@ -69,10 +89,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ProductoPage({ params }: Props) {
   const { id } = await params;
-  const resultado = (await sql`
-    SELECT * FROM productos WHERE id = ${Number(id)}
-  `) as any;
-  const producto = resultado[0];
+  const producto: any = await getProducto(Number(id));
   const t = await getTranslations("Product");
 
   if (!producto) {
@@ -108,13 +125,7 @@ export default async function ProductoPage({ params }: Props) {
   const porcentajeAhorro =
     precioAnterior > 0 ? Math.round((ahorro / precioAnterior) * 100) : 0;
 
-  const relacionados = (await sql`
-    SELECT * FROM productos
-    WHERE categoria = ${producto.categoria}
-      AND id != ${producto.id}
-      AND (disponible = true OR disponible IS NULL)
-    LIMIT 4
-  `) as any[];
+  const relacionados = await getRelacionados(producto.categoria, producto.id);
 
   const lineasDescripcion = descripcion
     ? descripcion.split(/\n+/).map((l) => l.trim()).filter(Boolean)
