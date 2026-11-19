@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // En Cloudflare no usamos el optimizador de imágenes (cuesta CPU y se paga aparte):
+    // las fotos de Amazon/AliExpress/eBay ya vienen optimizadas desde sus CDNs.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -42,3 +45,7 @@ const nextConfig: NextConfig = {
 };
 
 export default withNextIntl(nextConfig);
+
+// Permite usar los bindings de Cloudflare en `next dev`.
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();

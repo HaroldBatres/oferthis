@@ -1,5 +1,17 @@
 import Link from "next/link";
 import { sql } from "../../lib/db";
+import { cached, CACHE_LISTADO_S } from "../../lib/cache";
+
+const getProductosCategoria = cached(
+  async (slugNormalizado: string) =>
+    (await sql`
+      SELECT * FROM productos
+      WHERE (disponible = true OR disponible IS NULL)
+        AND lower(translate(categoria, 'ÁÀÄÂÉÈËÊÍÌÏÎÓÒÖÔÚÙÜÛÑáàäâéèëêíìïîóòöôúùüûñ', 'AAAAEEEEIIIIOOOOUUUUNaaaaeeeeiiiioooouuuun')) = ${slugNormalizado}
+    `) as any[],
+  "productos-categoria",
+  CACHE_LISTADO_S,
+);
 import type { Producto } from "../../models/product";
 import FavoriteButton from "../../components/FavoriteButton";
 import Header from "../../../components/Header";
@@ -42,10 +54,13 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
 
   const categoriaNombre = slug.charAt(0).toUpperCase() + slug.slice(1);
 
-  const todosLosProductos = (await sql`
-    SELECT * FROM productos
-    WHERE disponible = true OR disponible IS NULL
-  `) as any;
+  const slugNormalizado = slug
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  // Antes se traía TODA la tabla y se filtraba en JS (mucha CPU). Ahora filtra Postgres
+  // (sin acentos y en minúsculas) y el resultado se cachea unos minutos.
+  const todosLosProductos = (await getProductosCategoria(slugNormalizado)) as any;
 
   let productosFiltrados = todosLosProductos
     .filter(

@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "oferthis",
+  // Worker propio: reenvía las peticiones a OpenNext y ejecuta los crons (antes en vercel.json).
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "oferthis"
+    }
+  ],
+  // Caché de datos/ISR de Next.js en Workers KV (gratis, sin tarjeta; R2 exige activar facturación).
+  // Crear con: npx wrangler kv namespace create NEXT_INC_CACHE_KV  y pegar aquí el id.
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "REEMPLAZAR_CON_ID_KV"
+    }
+  ],
+  // Mismos horarios que vercel.json (UTC).
+  "triggers": {
+    "crons": ["0 8 * * *", "0 3 * * *", "0 4 * * *", "0 6 * * *", "0 5 * * *"]
+  },
+  // Plan Workers Paid: permite más CPU por petición/cron (el plan gratis solo da 10 ms).
+  // "limits": { "cpu_ms": 300000 },
+  "observability": { "enabled": true },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://www.oferthis.com"
+  }
+}

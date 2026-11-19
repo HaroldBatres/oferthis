@@ -5,11 +5,13 @@ import type { NextRequest } from "next/server";
 // /favoritos (y APIs) se hace en cada página/ruta, no con createRouteMatcher.
 const clerkHandler = clerkMiddleware();
 
-export function proxy(request: NextRequest, event: any) {
+// En Cloudflare (OpenNext) el middleware "edge" (middleware.ts) es el soportado oficialmente;
+// el "proxy.ts" de Next 16 corre en Node y en OpenNext es experimental.
+export function middleware(request: NextRequest, event: any) {
   return clerkHandler(request, event);
 }
 
-export default proxy;
+export default middleware;
 
 export const config = {
   matcher: [
